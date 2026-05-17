@@ -92,17 +92,11 @@ export default function Home() {
     const relatedEntities = useMemo(() => getRelatedEntities(), [selectedEntity, data]);
 
     return (
-        <>
-            <header style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 100 }}>
-                <a href="https://carthworks.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}> <div style={{ fontWeight: 'bold', fontSize: '1.2rem', background: 'linear-gradient(to right, #60a5fa, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Carthworks</div></a>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Community Portal</div>
-            </header>
-
-            <main className="container">
-                <div style={{ textAlign: 'center', marginBottom: '3rem', animation: 'fadeInDown 1s ease-out' }}>
-                    <h1>உப்பிலிய நாயக்கர் குலம்</h1>
-                    <p className="subtitle">Discover your Category, Kulatheivam & Pangali Relationships</p>
-                </div>
+        <main className="container">
+            <div style={{ textAlign: 'center', marginBottom: '3rem', animation: 'fadeInDown 1s ease-out' }}>
+                <h1>உப்பிலிய நாயக்கர் குலம்</h1>
+                <p className="subtitle">Discover your Category, Kulatheivam & Pangali Relationships</p>
+            </div>
 
                 <div className="glass-panel">
 
@@ -257,23 +251,6 @@ export default function Home() {
                         </div>
                     )}
                 </div>
-            </main>
-
-            <footer style={{ marginTop: '4rem', padding: '3rem 2rem', borderTop: '1px solid var(--border-color)', textAlign: 'center', background: 'rgba(0,0,0,0.2)' }}>
-                {/* <h3 style={{ marginBottom: '1rem', color: 'var(--text-light)', fontSize: '1.2rem' }}>Created by T. Karthikeyan</h3>
-        <p style={{ marginBottom: '1.5rem' }}>
-          <a href="https://carthworks.vercel.app/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>carthworks.vercel.app</a>
-        </p> */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '0.95rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        📞 +91 94867 72206
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        ✉️ tkarthikeyan@gmail.com
-                    </span>
-                </div>
-                <p style={{ marginTop: '2rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} Uppiliya Naicker Community Portal. All rights reserved.</p>
-            </footer>
-        </>
+        </main>
     );
 }
