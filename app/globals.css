@@ -359,3 +359,50 @@ p.subtitle {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE UTILITIES
+═══════════════════════════════════════════ */
+
+/* Fluid type scale */
+h1 { font-size: clamp(1.8rem, 5vw, 3rem); }
+h2 { font-size: clamp(1.3rem, 3.5vw, 2rem); }
+h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); }
+
+/* Container fluid padding */
+.container {
+  padding: clamp(1rem, 5vw, 2rem);
+}
+
+/* Prevent text overflow */
+* { word-break: break-word; }
+p, li, span { max-width: 100%; }
+
+/* Responsive images & media */
+img, video, svg { max-width: 100%; height: auto; }
+
+/* Touch targets min 44px for interactive controls */
+button, select { min-height: 44px; }
+
+/* Glass panel mobile */
+@media (max-width: 600px) {
+  .glass-panel {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+  .result-card { padding: 1.25rem; }
+  .result-title { font-size: 1.4rem; }
+  .graph-container { padding: 1rem; }
+  .actions-bar { justify-content: stretch; }
+  .btn-whatsapp { width: 100%; justify-content: center; }
+}
+
+/* Info grid already handles 768px; add a mobile tweak */
+@media (max-width: 480px) {
+  .info-section { padding: 1rem; }
+  .search-input { padding: 0.9rem 1rem 0.9rem 2.5rem; font-size: 1rem; }
+}
+
+/* Scrollable tables */
+table { width: 100%; border-collapse: collapse; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
