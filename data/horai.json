@@ -1,0 +1,146 @@
+{
+  "meta": {
+    "title": "ஓரை கணிப்பு - Horai Calculator",
+    "description": "Tamil Jyotish planetary hours (Horai) for the day"
+  },
+  "rasiList": [
+    { "id": 1,  "name": "மேஷம்",       "nameEn": "Mesham",    "lord": "mars"    },
+    { "id": 2,  "name": "ரிஷபம்",      "nameEn": "Rishabam",  "lord": "venus"   },
+    { "id": 3,  "name": "மிதுனம்",     "nameEn": "Midhunam",  "lord": "mercury" },
+    { "id": 4,  "name": "கடகம்",       "nameEn": "Kadagam",   "lord": "moon"    },
+    { "id": 5,  "name": "சிம்மம்",     "nameEn": "Simmam",    "lord": "sun"     },
+    { "id": 6,  "name": "கன்னி",       "nameEn": "Kanni",     "lord": "mercury" },
+    { "id": 7,  "name": "துலாம்",      "nameEn": "Thulam",    "lord": "venus"   },
+    { "id": 8,  "name": "விருச்சிகம்", "nameEn": "Viruchagam","lord": "mars"    },
+    { "id": 9,  "name": "தனுசு",       "nameEn": "Dhanusu",   "lord": "jupiter" },
+    { "id": 10, "name": "மகரம்",       "nameEn": "Makaram",   "lord": "saturn"  },
+    { "id": 11, "name": "கும்பம்",     "nameEn": "Kumbam",    "lord": "saturn"  },
+    { "id": 12, "name": "மீனம்",       "nameEn": "Meenam",    "lord": "jupiter" }
+  ],
+  "rasiHoraiCompat": {
+    "1":  { "best": ["jupiter","sun","moon","mars"],         "avoid": ["saturn","venus"] },
+    "2":  { "best": ["saturn","mercury","venus"],            "avoid": ["sun","moon","mars"] },
+    "3":  { "best": ["venus","sun","mercury"],               "avoid": ["moon","mars"] },
+    "4":  { "best": ["jupiter","sun","moon","mars"],         "avoid": ["mercury","venus","saturn"] },
+    "5":  { "best": ["jupiter","moon","mars","sun"],         "avoid": ["venus","saturn"] },
+    "6":  { "best": ["venus","mercury"],                     "avoid": ["moon","mars"] },
+    "7":  { "best": ["saturn","mercury","venus"],            "avoid": ["sun","moon","mars"] },
+    "8":  { "best": ["jupiter","sun","moon","mars"],         "avoid": ["saturn","venus"] },
+    "9":  { "best": ["sun","moon","mars","jupiter"],         "avoid": ["mercury","venus"] },
+    "10": { "best": ["mercury","venus","saturn"],            "avoid": ["sun","moon","mars"] },
+    "11": { "best": ["mercury","venus","saturn"],            "avoid": ["sun","moon","mars"] },
+    "12": { "best": ["sun","moon","mars","jupiter"],         "avoid": ["mercury","venus"] }
+  },
+  "goldenRules": [
+    { "icon": "🌟", "ta": "உச்ச வரம்: சுப ஓரையும் (குரு, சுக்கிரன், புதன்) உங்கள் ராசிக்கு நட்பு கிரகமாகவும் இருக்கும்போது மிகவும் சிறந்த பலன் கிட்டும்.", "en": "The Ultimate Blessing: A Subha Horai that is also friendly to your Rasi ensures maximum results." },
+    { "icon": "⚡", "ta": "விதி விலக்கு: ரிஷப ராசியினருக்கு குரு ஓரை பொதுவில் நல்லதாக இருந்தாலும், குரு சுக்கிரனுக்கு பகை. எனவே சுக்கிர/புத ஓரை இவர்களுக்கு சிறந்தது.", "en": "The Exception Rule: Even universally good Guru Horai is unfavorable for Rishaba Rasi since Jupiter and Venus are enemies." },
+    { "icon": "🛡️", "ta": "தணிக்கை விதி: மேஷம் அல்லது விருச்சிக ராசியினர் செவ்வாய் ஓரையில் அவசர காரியம் செய்தால், செவ்வாய் அவர்கள் ராசி அதிபதியாதலால் தீங்கு குறையும்.", "en": "Neutralizing Rule: For Mesha/Viruchaga Rasi, Mars Horai is less harmful since Mars is their own Rasi Lord." }
+  ],
+  "planets": {
+    "sun":     { "ta": "சூரியன்",    "en": "Sun",     "symbol": "☉", "color": "#f97316", "glowColor": "rgba(249,115,22,0.3)"  },
+    "venus":   { "ta": "சுக்கிரன்", "en": "Venus",   "symbol": "♀", "color": "#ec4899", "glowColor": "rgba(236,72,153,0.3)"  },
+    "mercury": { "ta": "புதன்",      "en": "Mercury", "symbol": "☿", "color": "#22d3ee", "glowColor": "rgba(34,211,238,0.3)"  },
+    "moon":    { "ta": "சந்திரன்",  "en": "Moon",    "symbol": "☽", "color": "#a78bfa", "glowColor": "rgba(167,139,250,0.3)" },
+    "saturn":  { "ta": "சனி",        "en": "Saturn",  "symbol": "♄", "color": "#94a3b8", "glowColor": "rgba(148,163,184,0.3)" },
+    "jupiter": { "ta": "குரு",       "en": "Jupiter", "symbol": "♃", "color": "#fbbf24", "glowColor": "rgba(251,191,36,0.3)"  },
+    "mars":    { "ta": "செவ்வாய்",  "en": "Mars",    "symbol": "♂", "color": "#ef4444", "glowColor": "rgba(239,68,68,0.3)"   }
+  },
+  "sequence": ["sun","venus","mercury","moon","saturn","jupiter","mars"],
+  "dayLords": {
+    "0": "sun",
+    "1": "moon",
+    "2": "mars",
+    "3": "mercury",
+    "4": "jupiter",
+    "5": "venus",
+    "6": "saturn"
+  },
+  "dayNames": {
+    "0": { "ta": "ஞாயிறு",  "en": "Sunday"    },
+    "1": { "ta": "திங்கள்", "en": "Monday"    },
+    "2": { "ta": "செவ்வாய்","en": "Tuesday"   },
+    "3": { "ta": "புதன்",   "en": "Wednesday" },
+    "4": { "ta": "வியாழன்", "en": "Thursday"  },
+    "5": { "ta": "வெள்ளி",  "en": "Friday"    },
+    "6": { "ta": "சனி",     "en": "Saturday"  }
+  },
+  "classification": {
+    "sun": {
+      "type": "madhyama",
+      "typeLabel": "மத்திம ஓரை",
+      "typeLabelEn": "Conditionally Good",
+      "color": "#f97316",
+      "goodFor": ["அரசு பணி", "அதிகாரிகளுடன் சந்திப்பு", "வேலை விண்ணப்பம்"],
+      "goodForEn": ["Government work", "Meeting authorities", "Job applications"],
+      "avoid":  ["திருமணம்", "இல்ல மாற்றம்"],
+      "avoidEn": ["Marriages", "Shifting houses"],
+      "note": "அரசு, அதிகார வட்டாரங்களுக்கு ஏற்றது. திருமணம் அல்லது இல்ல மாற்றத்தை தவிர்க்கவும்."
+    },
+    "venus": {
+      "type": "subha",
+      "typeLabel": "சுப ஓரை",
+      "typeLabelEn": "Auspicious",
+      "color": "#ec4899",
+      "goodFor": ["நகை வாங்குதல்", "வாகனம்", "ஆடை", "திருமணம்", "பயணம்", "அழகு சிகிச்சை"],
+      "goodForEn": ["Buying jewelry/vehicles", "Clothing", "Weddings", "Travel", "Beauty treatments"],
+      "avoid":  [],
+      "avoidEn": [],
+      "note": "பொருளாதார வெற்றிக்கு சிறந்தது. நகை, வாகனம், ஆடை வாங்க, திருமணம் மற்றும் பயணத்திற்கு ஏற்றது."
+    },
+    "mercury": {
+      "type": "subha",
+      "typeLabel": "சுப ஓரை",
+      "typeLabelEn": "Auspicious",
+      "color": "#22d3ee",
+      "goodFor": ["எழுத்து", "கல்வி", "ஒப்பந்தம்", "ஆவணங்கள்", "வியாபார பேச்சு"],
+      "goodForEn": ["Writing", "Education", "Business agreements", "Documentation", "Accounting"],
+      "avoid":  [],
+      "avoidEn": [],
+      "note": "தகவல் தொடர்பு மற்றும் அறிவுக்கு சிறந்தது. கல்வி, எழுத்து, வியாபார ஒப்பந்தங்களுக்கு ஏற்றது."
+    },
+    "moon": {
+      "type": "madhyama",
+      "typeLabel": "மத்திம ஓரை",
+      "typeLabelEn": "Conditionally Good",
+      "color": "#a78bfa",
+      "goodFor": ["வளர்பிறை நாட்களில் அனைத்தும்", "நீர் தொடர்பான செயல்கள்"],
+      "goodForEn": ["All activities during waxing moon (Valarpirai)", "Water-related activities"],
+      "avoid":  ["தேய்பிறை நாட்களில் புதிய முயற்சிகள்"],
+      "avoidEn": ["New ventures during waning moon (Theipirai)"],
+      "note": "வளர்பிறையில் (Valarpirai) மிகவும் சுபகரமானது. தேய்பிறையில் (Theipirai) புதிய முயற்சிகளை தவிர்க்கவும்."
+    },
+    "saturn": {
+      "type": "asubha",
+      "typeLabel": "அசுப ஓரை",
+      "typeLabelEn": "Inauspicious",
+      "color": "#94a3b8",
+      "goodFor": ["கடன் தீர்த்தல்", "மரம் நடுதல்"],
+      "goodForEn": ["Paying off debts", "Planting trees"],
+      "avoid":  ["புதிய தொழில்", "முக்கிய முடிவுகள்"],
+      "avoidEn": ["Starting new ventures", "Important decisions"],
+      "note": "எல்லாவற்றையும் தாமதப்படுத்தும். புதிய முயற்சிகளை தவிர்க்கவும். கடன் தீர்க்க சிறந்தது."
+    },
+    "jupiter": {
+      "type": "subha",
+      "typeLabel": "சுப ஓரை",
+      "typeLabelEn": "Auspicious (Best)",
+      "color": "#fbbf24",
+      "goodFor": ["திருமணம்", "நிதி பரிவர்த்தனை", "தொழில் தொடக்கம்", "பெரியோர் சந்திப்பு"],
+      "goodForEn": ["Marriages", "Financial transactions", "Starting business", "Meeting elders"],
+      "avoid":  [],
+      "avoidEn": [],
+      "note": "மிகவும் சுபகரமான ஓரை. திருமணம், நிதி, தொழில் தொடக்கம் மற்றும் பெரியோர் சந்திப்பிற்கு சிறந்தது."
+    },
+    "mars": {
+      "type": "asubha",
+      "typeLabel": "அசுப ஓரை",
+      "typeLabelEn": "Inauspicious",
+      "color": "#ef4444",
+      "goodFor": ["நிலம் வாங்குதல்", "விளையாட்டு", "இயந்திரம் / நெருப்பு"],
+      "goodForEn": ["Buying property/land", "Sports", "Machinery & fire-related work"],
+      "avoid":  ["சுப செயல்கள்", "திருமணம்", "பயணம்"],
+      "avoidEn": ["Auspicious tasks", "Marriages", "Travel"],
+      "note": "மிகவும் ஆக்ரோஷமான ஓரை. சுப செயல்களை தவிர்க்கவும். நிலம் வாங்க மட்டும் ஏற்றது."
+    }
+  }
+}
