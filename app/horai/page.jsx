@@ -534,12 +534,9 @@ ${bestText}
 📞 தொடர்பு: +91 94867 72206
 ✉️ மின்னஞ்சல்: tkarthikeyan@gmail.com`;
 
-    if (navigator.share) {
-      navigator.share({ title: 'இன்றைய ஓரை & பஞ்சாங்கம்', text: shareText }).catch(() => {});
-    } else {
-      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-      window.open(url, '_blank');
-    }
+    const encodedText = encodeURIComponent(shareText);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
