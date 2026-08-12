@@ -166,10 +166,37 @@ export default function Home() {
   return (
     <>
       <style suppressHydrationWarning>{`
-        .hp-page { font-family:'Outfit','Noto Sans Tamil',sans-serif; overflow-x:hidden; min-height: calc(100vh - 120px); }
+        .hp-page {
+          font-family:'Outfit','Noto Sans Tamil',sans-serif;
+          overflow-x:hidden;
+          min-height: calc(100vh - 120px);
+          position: relative;
+        }
+
+        .hp-page-bg-img {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          width: 100vw; height: 100vh;
+          object-fit: cover;
+          opacity: 0.18;
+          filter: blur(3px) saturate(1.4);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .hp-page-bg-overlay {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          width: 100vw; height: 100vh;
+          background: radial-gradient(circle at 30% 20%, rgba(30,11,46,0.85) 0%, rgba(15,23,42,0.92) 70%, rgba(10,15,30,0.96) 100%);
+          pointer-events: none;
+          z-index: 0;
+        }
 
         /* Split container */
         .hp-split-container {
+          position: relative;
+          z-index: 1;
           max-width: 1300px;
           margin: 0 auto;
           padding: 2rem 1.5rem 3rem;
@@ -195,35 +222,37 @@ export default function Home() {
         }
 
         .hp-hero-box {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.09);
+          background: rgba(15, 23, 42, 0.65);
+          border: 1px solid rgba(192, 132, 252, 0.3);
           border-radius: 1.5rem;
           padding: 2rem;
           position: relative;
           overflow: hidden;
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(16px);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         }
         .hp-hero-glow {
           position: absolute; top:-40%; left:50%; transform:translateX(-50%);
           width:500px; height:400px; border-radius:50%;
-          background: radial-gradient(ellipse,rgba(192,132,252,.18) 0%,rgba(96,165,250,.12) 40%,transparent 70%);
+          background: radial-gradient(ellipse,rgba(192,132,252,.25) 0%,rgba(96,165,250,.18) 40%,transparent 70%);
           pointer-events:none; filter:blur(40px);
+          z-index: 1;
         }
         .hp-hero-badge {
           display:inline-flex; align-items:center; gap:.5rem;
           padding:.3rem .95rem; border-radius:999px; margin-bottom:1.1rem;
-          background:rgba(192,132,252,.1); border:1px solid rgba(192,132,252,.35);
+          background:rgba(192,132,252,.15); border:1px solid rgba(192,132,252,.4);
           color:#c084fc; font-size:.8rem; font-weight:600;
         }
         .hp-hero-h1 {
           font-size: clamp(1.8rem, 4.5vw, 2.7rem);
           font-weight: 900; line-height: 1.2;
-          background: linear-gradient(135deg,#f8fafc 30%,#c084fc 65%,#60a5fa 100%);
+          background: linear-gradient(135deg,#ffffff 30%,#c084fc 65%,#60a5fa 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           margin: 0 0 .85rem;
         }
         .hp-hero-sub {
-          font-size: .95rem; color: #94a3b8; line-height: 1.7; margin: 0;
+          font-size: .95rem; color: #cbd5e1; line-height: 1.7; margin: 0;
         }
 
         /* Stats strip */
@@ -231,10 +260,12 @@ export default function Home() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: .75rem;
-          background: rgba(255,255,255,.02);
-          border: 1px solid rgba(255,255,255,.08);
+          background: rgba(15, 23, 42, 0.65);
+          border: 1px solid rgba(255,255,255,.12);
           border-radius: 1.25rem;
           padding: 1.1rem 1rem;
+          backdrop-filter: blur(16px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         }
         @media(max-width: 540px) {
           .hp-stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -262,19 +293,31 @@ export default function Home() {
         }
 
         .hp-search-card {
-          background: rgba(255,255,255,.04);
-          border: 1px solid rgba(255,255,255,.1);
+          background: rgba(15, 23, 42, 0.65);
+          border: 1px solid rgba(255,255,255,.12);
           border-radius: 1.5rem;
           padding: 1.75rem;
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(16px);
           min-height: 500px;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         }
         .hp-search-title { font-size: 1.3rem; font-weight: 800; color: #f1f5f9; margin-bottom: .35rem; }
         .hp-search-sub { font-size: .85rem; color: #94a3b8; margin-bottom: 1.25rem; }
       `}</style>
 
       <div className="hp-page">
-        <NewsTicker />
+        {/* Whole Page Fixed Dimmed Background & Overlay */}
+        <Image
+          src={communityLogo}
+          alt="Community Page Watermark"
+          className="hp-page-bg-img"
+          priority
+        />
+        <div className="hp-page-bg-overlay" />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <NewsTicker />
+        </div>
 
         <div className="hp-split-container">
 
@@ -284,18 +327,20 @@ export default function Home() {
             {/* Hero Banner */}
             <div className="hp-hero-box">
               <div className="hp-hero-glow" />
-              <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1', minWidth: '220px' }}>
-                  <div className="hp-hero-badge">🏛️ உப்பிலிய நாயக்கர் &nbsp;|&nbsp; Community Portal</div>
-                  <h1 className="hp-hero-h1">உப்பிலிய நாயக்கர்<br />குல அடையாளம்</h1>
-                  <p className="hp-hero-sub">
-                    உங்கள் குலம், குலதெய்வம், பங்காளிகள், மாமன் மச்சான் உறவுகள் மற்றும் திருமண பொருத்தம் — அனைத்தும் ஒரே தளத்தில்.
-                    <br />
-                    <em style={{ opacity: .75, fontSize: '.85rem' }}>Discover Kuladheivam locations, Kulam categories &amp; astrology tools.</em>
-                  </p>
-                </div>
-                <div style={{ width: '120px', height: '120px', flexShrink: 0, borderRadius: '1.25rem', overflow: 'hidden', border: '2px solid rgba(192,132,252,0.4)', boxShadow: '0 8px 24px rgba(192,132,252,0.25)', background: 'rgba(0,0,0,0.35)', padding: '.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Image src={communityLogo} alt="Uppiliya Naicker Community Emblem" style={{ width: '100%', height: '100%', objectFit: 'contain' }} priority />
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ flex: '1', minWidth: '220px' }}>
+                    <div className="hp-hero-badge">🏛️ உப்பிலிய நாயக்கர் &nbsp;|&nbsp; Community Portal</div>
+                    <h1 className="hp-hero-h1">உப்பிலிய நாயக்கர்<br />குல அடையாளம்</h1>
+                    <p className="hp-hero-sub">
+                      உங்கள் குலம், குலதெய்வம், பங்காளிகள், மாமன் மச்சான் உறவுகள் மற்றும் திருமண பொருத்தம் — அனைத்தும் ஒரே தளத்தில்.
+                      <br />
+                      <em style={{ opacity: .85, fontSize: '.85rem', color: '#c084fc' }}>Discover Kuladheivam locations, Kulam categories &amp; astrology tools.</em>
+                    </p>
+                  </div>
+                  <div style={{ width: '125px', height: '125px', flexShrink: 0, borderRadius: '1.25rem', overflow: 'hidden', border: '2px solid rgba(192,132,252,0.5)', boxShadow: '0 10px 30px rgba(192,132,252,0.3)', background: 'rgba(15,23,42,0.85)', padding: '.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Image src={communityLogo} alt="Uppiliya Naicker Community Emblem" style={{ width: '100%', height: '100%', objectFit: 'contain' }} priority />
+                  </div>
                 </div>
               </div>
             </div>
