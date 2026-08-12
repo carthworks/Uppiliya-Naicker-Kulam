@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -165,10 +165,9 @@ export default function NavHeader() {
       {/* Mobile drawer */}
       <div className={`nav-drawer ${open ? 'open' : ''}`} role="dialog" aria-label="Mobile navigation">
         {NAV_LINKS.map(({ href, label, special }, i) => (
-          <>
-            {i > 0 && <div key={`d${i}`} className="nav-drawer-divider" />}
+          <Fragment key={href}>
+            {i > 0 && <div className="nav-drawer-divider" />}
             <Link
-              key={href}
               href={href}
               className={[
                 'nav-link',
@@ -179,7 +178,7 @@ export default function NavHeader() {
             >
               {label}
             </Link>
-          </>
+          </Fragment>
         ))}
       </div>
     </>
