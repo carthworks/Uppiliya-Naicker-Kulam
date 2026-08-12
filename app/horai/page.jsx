@@ -517,7 +517,7 @@ export default function HoraiPage() {
 `🪐 *இன்றைய கிரக ஓரை & பஞ்சாங்கம்*
 📅 நாள்: ${dayInfo.ta} (${dayInfo.en}) · ${now.toLocaleDateString('ta-IN')}
 📍 இருப்பிடம்: ${locationName} (${coords.lat}°, ${coords.lng}°)
-🌅 சூரிய உதயம்: ${fmt12(sunriseHour, sunriseMin)} | 🌇 அஸ்தமனம்: ${fmt12(sunsetHour, sunsetMin)}
+🌅 உதயம்: ${fmt12(sunriseHour, sunriseMin)} | 🌇 அஸ்தமனம்: ${fmt12(sunsetHour, sunsetMin)}
 
 🚫 *ராகு காலம்:* ${panchangam.rahu.text}
 ⚡ *எமகண்டம்:* ${panchangam.yama.text}
@@ -526,7 +526,13 @@ export default function HoraiPage() {
 ⭐ *இன்றைய சுப ஓரைகள்:*
 ${bestText}
 
-ஆதாரம்: Uppiliya Naicker Community App`;
+---
+🏛️ *உப்பிலிய நாயக்கர் சமூக தளம்*
+குலதெய்வம் கோயில்கள், குலம்/பட்டம், பங்காளி & மாமன் மச்சான் உறவுகள் மற்றும் ஓரை அறிய:
+🌐 https://uppiliya-naicker-kulam.vercel.app
+
+📞 தொடர்பு: +91 94867 72206
+✉️ மின்னஞ்சல்: tkarthikeyan@gmail.com`;
 
     if (navigator.share) {
       navigator.share({ title: 'இன்றைய ஓரை & பஞ்சாங்கம்', text: shareText }).catch(() => {});
