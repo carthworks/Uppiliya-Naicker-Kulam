@@ -1,3 +1,6 @@
+import Image from 'next/image';
+import communityLogo from '../../images/uppliakulam.png';
+
 export const metadata = {
   title: 'History | Uppiliya Naicker Community',
   description: 'History and Background of the Uppiliya Naicker Community',
@@ -7,6 +10,28 @@ export default function HistoryPage() {
   return (
     <main className="container">
       <div style={{ textAlign: 'center', marginBottom: '3rem', animation: 'fadeInDown 1s ease-out' }}>
+        <div style={{
+          maxWidth: '560px',
+          width: '100%',
+          margin: '0 auto 1.75rem',
+          borderRadius: '1.75rem',
+          overflow: 'hidden',
+          border: '2px solid rgba(245,158,11,0.4)',
+          boxShadow: '0 12px 40px rgba(245,158,11,0.25)',
+          background: 'rgba(0,0,0,0.35)',
+          padding: '.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(12px)',
+        }}>
+          <Image
+            src={communityLogo}
+            alt="Uppiliya Naicker Community Emblem"
+            style={{ width: '100%', height: 'auto', maxHeight: '380px', objectFit: 'contain', borderRadius: '1.25rem' }}
+            priority
+          />
+        </div>
         <h1>வரலாறு (History)</h1>
         <p className="subtitle">History and background of the Uppiliya Naicker Community</p>
       </div>

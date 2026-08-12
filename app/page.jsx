@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import communityLogo from '../images/uppliakulam.png';
 
 /* ── News ticker items ── */
 const TICKER_ITEMS = [
@@ -282,13 +284,20 @@ export default function Home() {
             {/* Hero Banner */}
             <div className="hp-hero-box">
               <div className="hp-hero-glow" />
-              <div className="hp-hero-badge">🏛️ உப்பிலிய நாயக்கர் &nbsp;|&nbsp; Community Portal</div>
-              <h1 className="hp-hero-h1">உப்பிலிய நாயக்கர்<br />குல அடையாளம்</h1>
-              <p className="hp-hero-sub">
-                உங்கள் குலம், குலதெய்வம், பங்காளிகள், மாமன் மச்சான் உறவுகள் மற்றும் திருமண பொருத்தம் — அனைத்தும் ஒரே தளத்தில்.
-                <br />
-                <em style={{ opacity: .75, fontSize: '.85rem' }}>Discover Kuladheivam locations, Kulam categories &amp; astrology tools.</em>
-              </p>
+              <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1', minWidth: '220px' }}>
+                  <div className="hp-hero-badge">🏛️ உப்பிலிய நாயக்கர் &nbsp;|&nbsp; Community Portal</div>
+                  <h1 className="hp-hero-h1">உப்பிலிய நாயக்கர்<br />குல அடையாளம்</h1>
+                  <p className="hp-hero-sub">
+                    உங்கள் குலம், குலதெய்வம், பங்காளிகள், மாமன் மச்சான் உறவுகள் மற்றும் திருமண பொருத்தம் — அனைத்தும் ஒரே தளத்தில்.
+                    <br />
+                    <em style={{ opacity: .75, fontSize: '.85rem' }}>Discover Kuladheivam locations, Kulam categories &amp; astrology tools.</em>
+                  </p>
+                </div>
+                <div style={{ width: '120px', height: '120px', flexShrink: 0, borderRadius: '1.25rem', overflow: 'hidden', border: '2px solid rgba(192,132,252,0.4)', boxShadow: '0 8px 24px rgba(192,132,252,0.25)', background: 'rgba(0,0,0,0.35)', padding: '.35rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Image src={communityLogo} alt="Uppiliya Naicker Community Emblem" style={{ width: '100%', height: '100%', objectFit: 'contain' }} priority />
+                </div>
+              </div>
             </div>
 
             {/* Stats Grid */}
