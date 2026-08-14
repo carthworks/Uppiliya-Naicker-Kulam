@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import communityLogo from '../../images/uppliakulam.png';
+import ThoughtComments from '../components/ThoughtComments';
 
 export const metadata = {
   title: 'Thought & Vision | சிந்தனைகள் | Uppiliya Naicker Community',
@@ -402,6 +403,9 @@ export default function ThoughtPage() {
           உப்பிலிய நாயக்கர் குலம் — வரலாற்றில் வேரூன்றி… முன்னேற்றத்தை நோக்கி பயணிக்கும் ஒரு தலைமுறை!
         </p>
       </div>
+
+      {/* Facebook-style Community Comments & Discussion */}
+      <ThoughtComments />
 
     </main>
   );
