@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import communityLogo from '../images/uppliakulam.png';
+import ThoughtComments from './components/ThoughtComments';
 
 /* ── News ticker items ── */
 const TICKER_ITEMS = [
@@ -26,6 +27,17 @@ const FEATURES = [
     badge: 'வரலாறு',
   },
   {
+    href: '/thought',
+    icon: '💡',
+    title: 'சிந்தனைகள்',
+    titleEn: 'Thought & Vision',
+    desc: 'தொழில், கல்வி மற்றும் எதிர்காலத்திற்கான 5 லட்சியங்கள்.',
+    gradient: 'linear-gradient(135deg,#fbbf24,#f59e0b)',
+    glow: 'rgba(251,191,36,0.2)',
+    border: 'rgba(251,191,36,0.35)',
+    badge: 'லட்சியங்கள்',
+  },
+  {
     href: '/rasi-porutham',
     icon: '✨',
     title: 'ராசி பொருத்தம்',
@@ -42,9 +54,9 @@ const FEATURES = [
     title: 'ஓரை கணிப்பு',
     titleEn: 'Horai Calculator',
     desc: 'இன்றைய கிரக ஓரைகள், ராகு காலம் மற்றும் சுப நேரங்கள்.',
-    gradient: 'linear-gradient(135deg,#fbbf24,#ec4899)',
-    glow: 'rgba(251,191,36,0.2)',
-    border: 'rgba(251,191,36,0.35)',
+    gradient: 'linear-gradient(135deg,#a855f7,#ec4899)',
+    glow: 'rgba(168,85,247,0.2)',
+    border: 'rgba(168,85,247,0.35)',
     badge: 'ஓரை',
   },
 ];
@@ -503,6 +515,74 @@ export default function Home() {
               )}
             </div>
           </div>
+
+          {/* Featured Infographic & Vision Banner */}
+          <div style={{
+            marginTop: '3.5rem',
+            background: 'linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(30,11,46,0.85) 100%)',
+            border: '1px solid rgba(245,158,11,0.3)',
+            borderRadius: '1.5rem',
+            padding: '2rem',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(16px)',
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '2rem',
+              alignItems: 'center'
+            }}>
+              <div>
+                <span style={{
+                  background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+                  border: '1px solid rgba(245,158,11,0.3)', padding: '0.35rem 0.9rem',
+                  borderRadius: '9999px', fontSize: '0.85rem', fontWeight: '600'
+                }}>
+                  ✨ வரலாற்றுத் தொழிற்துறை மாற்றம் &amp; எதிர்காலப் பாதை
+                </span>
+
+                <h2 style={{
+                  fontSize: '1.8rem', fontWeight: '800', marginTop: '1rem', marginBottom: '0.75rem',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f59e0b 100%)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+                }}>
+                  உப்பிலிய நாயக்கர் குல சிந்தனைகள்
+                </h2>
+
+                <p style={{ color: '#cbd5e1', lineHeight: '1.7', fontSize: '1rem', marginBottom: '1.25rem' }}>
+                  மண் உப்புத் தொழிலில் இருந்து கொத்தனார் பணி, கட்டடக் கலை, குளம் வெட்டுதல் மற்றும் ஒப்பந்தப் பணிகள் வரை உயர்ந்த நமது முன்னோர்களின் உழைப்பையும்... எதிர்காலத்தை உருவாக்க 5 முக்கிய லட்சியங்களையும் அறிந்துகொள்ளுங்கள்.
+                </p>
+
+                <Link href="/thought" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: '#ffffff', textDecoration: 'none', padding: '0.75rem 1.5rem',
+                  borderRadius: '0.75rem', fontWeight: '700', fontSize: '0.95rem',
+                  boxShadow: '0 4px 15px rgba(245,158,11,0.3)'
+                }}>
+                  💡 முழு சிந்தனைகளையும் வாசிக்க ➔
+                </Link>
+              </div>
+
+              <div style={{
+                borderRadius: '1.25rem', overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                textAlign: 'center', background: 'rgba(0,0,0,0.4)', padding: '0.5rem'
+              }}>
+                <Image
+                  src="/images/uppliya_2.png"
+                  alt="Uppiliya Naicker History & Etymology Infographic"
+                  width={600}
+                  height={900}
+                  style={{ width: '100%', height: 'auto', maxHeight: '420px', objectFit: 'contain', borderRadius: '0.85rem' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Community Comments */}
+          <ThoughtComments />
 
         </div>
       </div>

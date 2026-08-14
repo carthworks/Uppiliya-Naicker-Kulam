@@ -80,84 +80,95 @@ export default function ThoughtPage() {
           </h2>
         </div>
 
-        <p style={{ fontSize: '1.1rem', color: '#e2e8f0', marginBottom: '1.25rem' }}>
-          &ldquo;உப்பு&rdquo; என்ற சொல்லுடன் தொடர்புடைய பெயரைக் கொண்ட இந்த சமூகத்தின் பாரம்பரிய வாழ்வாதாரங்களில், <strong>மண் உப்பு மற்றும் உப்புக்காரம் எனப்படும் Saltpetre தயாரிப்பும்</strong> முக்கியமானதாக இருந்ததாக வரலாற்றுக் குறிப்புகள் தெரிவிக்கின்றன.
-        </p>
-
-        <p style={{ fontSize: '1.05rem', color: '#cbd5e1', marginBottom: '1.25rem' }}>
-          அந்த காலத்தில் உப்பு என்பது ஒரு சாதாரண பொருள் அல்ல. மக்களின் அன்றாட வாழ்வுக்கும், அக்கால நிர்வாகங்களின் தேவைகளுக்கும் அது மிகவும் முக்கியமான வளமாக இருந்தது.
-        </p>
-
-        <div style={{
-          background: 'rgba(245,158,11,0.08)',
-          borderLeft: '4px solid #f59e0b',
-          padding: '1.25rem 1.5rem',
-          borderRadius: '0 1rem 1rem 0',
-          margin: '1.5rem 0'
-        }}>
-          <p style={{ margin: 0, fontSize: '1.05rem', color: '#fef3c7', fontStyle: 'italic' }}>
-            &ldquo;காலப்போக்கில், குறிப்பாக ஆங்கிலேயர் ஆட்சியில் மண் உப்பு தயாரிப்புக்கு கட்டுப்பாடுகள் விதிக்கப்பட்டபோது, சமூகத்தின் பாரம்பரியத் தொழில் ஒரு புதிய திருப்பத்தை சந்தித்தது. <strong>அந்த மாற்றம் அவர்களின் பயணத்தை நிறுத்தவில்லை… மாறாக, புதிய திறமைகளுக்கு வழி வகுத்தது.</strong>&rdquo;
-          </p>
-        </div>
-
-        <h3 style={{ fontSize: '1.25rem', color: '#60a5fa', marginTop: '1.5rem', marginBottom: '1rem' }}>
-          🛠️ மண்ணோடும், நீரோடும், கல்லோடும் இணைந்த தொழில்கள்:
-        </h3>
-
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-          marginBottom: '1.5rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '2rem',
+          alignItems: 'flex-start'
         }}>
-          {[
-            { icon: '🏗️', title: 'கட்டுமானப் பணிகள்' },
-            { icon: '🧱', title: 'கொத்தனார் பணி' },
-            { icon: '⛏️', title: 'கல் செதுக்குதல்' },
-            { icon: '🌊', title: 'குளம் & ஏரி வெட்டுதல்' },
-            { icon: '🌾', title: 'விவசாயம்' },
-            { icon: '📜', title: 'பொதுப்பணிகள் & ஒப்பந்தங்கள்' }
-          ].map((item, idx) => (
-            <div key={idx} style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '0.85rem',
-              padding: '0.85rem 1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem'
+          {/* Left Column Text */}
+          <div>
+            <p style={{ fontSize: '1.05rem', color: '#e2e8f0', marginBottom: '1.25rem' }}>
+              &ldquo;உப்பு&rdquo; என்ற சொல்லுடன் தொடர்புடைய பெயரைக் கொண்ட இந்த சமூகத்தின் பாரம்பரிய வாழ்வாதாரங்களில், <strong>மண் உப்பு மற்றும் உப்புக்காரம் எனப்படும் Saltpetre தயாரிப்பும்</strong> முக்கியமானதாக இருந்ததாக வரலாற்றுக் குறிப்புகள் தெரிவிக்கின்றன.
+            </p>
+
+            <p style={{ fontSize: '1.02rem', color: '#cbd5e1', marginBottom: '1.25rem' }}>
+              அந்த காலத்தில் உப்பு என்பது ஒரு சாதாரண பொருள் அல்ல. மக்களின் அன்றாட வாழ்வுக்கும், அக்கால நிர்வாகங்களின் தேவைகளுக்கும் அது மிகவும் முக்கியமான வளமாக இருந்தது.
+            </p>
+
+            <div style={{
+              background: 'rgba(245,158,11,0.08)',
+              borderLeft: '4px solid #f59e0b',
+              padding: '1rem 1.25rem',
+              borderRadius: '0 0.85rem 0.85rem 0',
+              margin: '1.25rem 0'
             }}>
-              <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
-              <span style={{ color: '#f8fafc', fontWeight: '600', fontSize: '0.98rem' }}>{item.title}</span>
+              <p style={{ margin: 0, fontSize: '0.98rem', color: '#fef3c7', fontStyle: 'italic' }}>
+                &ldquo;காலப்போக்கில், குறிப்பாக ஆங்கிலேயர் ஆட்சியில் மண் உப்பு தயாரிப்புக்கு கட்டுப்பாடுகள் விதிக்கப்பட்டபோது, சமூகத்தின் பாரம்பரியத் தொழில் ஒரு புதிய திருப்பத்தை சந்தித்தது. <strong>அந்த மாற்றம் அவர்களின் பயணத்தை நிறுத்தவில்லை… மாறாக, புதிய திறமைகளுக்கு வழி வகுத்தது.</strong>&rdquo;
+              </p>
             </div>
-          ))}
-        </div>
 
-        <p style={{ fontSize: '1.05rem', color: '#e2e8f0', margin: 0 }}>
-          இவ்வாறு, பல்வேறு தொழில்களில் தங்கள் திறமையை வெளிப்படுத்தினர். <strong>உப்பிலிய நாயக்கர் குலத்தின் வரலாறு என்பது ஒரு தொழிலின் வரலாறு மட்டுமல்ல.</strong> மாற்றத்தை எதிர்கொண்டு, தங்கள் உழைப்பையும் திறமையையும் புதிய தலைமுறைகளுக்கு எடுத்துச் சென்ற ஒரு சமூகத்தின் வரலாறு.
-        </p>
+            <h3 style={{ fontSize: '1.15rem', color: '#60a5fa', marginTop: '1.25rem', marginBottom: '0.85rem' }}>
+              🛠️ மண்ணோடும், நீரோடும், கல்லோடும் இணைந்த தொழில்கள்:
+            </h3>
 
-        {/* Infographic Banner Card */}
-        <div style={{
-          margin: '2rem 0',
-          borderRadius: '1.25rem',
-          overflow: 'hidden',
-          border: '1px solid rgba(245,158,11,0.3)',
-          boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
-          background: 'rgba(15,23,42,0.6)',
-          textAlign: 'center',
-          padding: '0.75rem'
-        }}>
-          <Image
-            src="/images/uppliya_2.png"
-            alt="Uppiliya Naicker Etymology & Historical Profession Infographic"
-            width={800}
-            height={1200}
-            style={{ width: '100%', height: 'auto', maxHeight: '750px', objectFit: 'contain', borderRadius: '0.85rem' }}
-          />
-          <p style={{ margin: '0.75rem 0 0.25rem', fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic' }}>
-            📌 உப்பிலிய நாயக்கர் குலத் தோற்றமும் தொழில்துறை மாற்றமும் (Historical Infographic)
-          </p>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '0.75rem',
+              marginBottom: '1.25rem'
+            }}>
+              {[
+                { icon: '🏗️', title: 'கட்டுமானப் பணிகள்' },
+                { icon: '🧱', title: 'கொத்தனார் பணி' },
+                { icon: '⛏️', title: 'கல் செதுக்குதல்' },
+                { icon: '🌊', title: 'குளம் & ஏரி வெட்டுதல்' },
+                { icon: '🌾', title: 'விவசாயம்' },
+                { icon: '📜', title: 'ஒப்பந்தப் பணிகள்' }
+              ].map((item, idx) => (
+                <div key={idx} style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '0.75rem',
+                  padding: '0.65rem 0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem'
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+                  <span style={{ color: '#f8fafc', fontWeight: '600', fontSize: '0.9rem' }}>{item.title}</span>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ fontSize: '1.02rem', color: '#e2e8f0', margin: 0 }}>
+              இவ்வாறு, பல்வேறு தொழில்களில் தங்கள் திறமையை வெளிப்படுத்தினர். <strong>உப்பிலிய நாயக்கர் குலத்தின் வரலாறு என்பது ஒரு தொழிலின் வரலாறு மட்டுமல்ல.</strong> மாற்றத்தை எதிர்கொண்டு, தங்கள் உழைப்பையும் திறமையையும் புதிய தலைமுறைகளுக்கு எடுத்துச் சென்ற ஒரு சமூகத்தின் வரலாறு.
+            </p>
+          </div>
+
+          {/* Right Column: Infographic Image */}
+          <div style={{
+            borderRadius: '1.25rem',
+            overflow: 'hidden',
+            border: '1px solid rgba(245,158,11,0.3)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.4)',
+            background: 'rgba(15,23,42,0.6)',
+            textAlign: 'center',
+            padding: '0.65rem',
+            position: 'sticky',
+            top: '80px'
+          }}>
+            <Image
+              src="/images/uppliya_2.png"
+              alt="Uppiliya Naicker Etymology & Historical Profession Infographic"
+              width={800}
+              height={1200}
+              style={{ width: '100%', height: 'auto', maxHeight: '620px', objectFit: 'contain', borderRadius: '0.85rem' }}
+            />
+            <p style={{ margin: '0.6rem 0 0.2rem', fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic' }}>
+              📌 உப்பிலிய நாயக்கர் குலத் தோற்றமும் தொழில்துறை மாற்றமும் (Infographic)
+            </p>
+          </div>
         </div>
 
         <div style={{

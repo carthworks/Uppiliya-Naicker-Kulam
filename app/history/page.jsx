@@ -37,7 +37,7 @@ export default function HistoryPage() {
       </div>
 
       <div className="glass-panel" style={{ lineHeight: '1.8', fontSize: '1.1rem' }}>
-        <p style={{ marginBottom: '2rem' }}>
+        <p style={{ marginBottom: '1.5rem' }}>
           உப்பிலிய நாயக்கர் (அல்லது உப்பிலியர்) என்பவர்கள் தமிழகத்தில் கொங்கு மண்டலம் மற்றும் பல்வேறு மாவட்டங்களில் பரவலாக வாழ்ந்து வரும் ஒரு முதன்மையான வரலாற்றுப் பின்னணி கொண்ட சமூகத்தினர் ஆவர். [1]
         </p>
         <p style={{ marginBottom: '2rem' }}>
@@ -45,32 +45,43 @@ export default function HistoryPage() {
         </p>
 
         <h2 style={{ color: 'var(--primary)', marginTop: '2rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>1. பெயர்க் காரணம் மற்றும் பாரம்பரிய தொழில்</h2>
-        <ul style={{ paddingLeft: '2rem', marginBottom: '1.5rem', color: 'var(--text-light)' }}>
-          <li style={{ marginBottom: '0.5rem' }}><strong>மண்-உப்பு உற்பத்தி:</strong> இவர்களின் பாரம்பரியத் தொழில் பெயருக்கு ஏற்றாற்போல் நிலத்தில் இருந்து மண்-உப்பு (சுதேசி உப்பு) தயாரிப்பதாகும்.</li>
-          <li style={{ marginBottom: '0.5rem' }}><strong>கட்டுமானப் பணிகள்:</strong> உப்பு உற்பத்தி மட்டுமின்றி, ஆரம்பக் காலத்தில் இவர்கள் கிணறுகள் தோண்டுதல், ஏரி/கால்வாய் வெட்டுதல், செங்கல் சூளை அமைத்தல், கோட்டைகள் மற்றும் வீடுகள் கட்டுதல் போன்ற உன்னதமான மண் சார்ந்த கட்டுமானப் பணிகளிலும் மிகச் சிறப்பாக ஈடுபட்டுள்ளனர். [3]</li>
-        </ul>
-
-        {/* Infographic Image */}
+        
+        {/* Side-by-side layout: Text on Left, Picture on Right */}
         <div style={{
-          margin: '2rem 0',
-          borderRadius: '1.25rem',
-          overflow: 'hidden',
-          border: '1px solid rgba(245,158,11,0.3)',
-          boxShadow: '0 12px 36px rgba(0,0,0,0.4)',
-          background: 'rgba(15,23,42,0.6)',
-          textAlign: 'center',
-          padding: '0.75rem'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '2rem',
+          alignItems: 'center',
+          marginBottom: '2.5rem'
         }}>
-          <Image
-            src="/images/uppliya_2.png"
-            alt="Uppiliya Naicker Etymology & Historical Profession Infographic"
-            width={800}
-            height={1200}
-            style={{ width: '100%', height: 'auto', maxHeight: '750px', objectFit: 'contain', borderRadius: '0.85rem' }}
-          />
-          <p style={{ margin: '0.75rem 0 0.25rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-            📌 வரலாற்றுப் பின்னணி & தொழிற்துறை மாற்றம் (Historical Infographic)
-          </p>
+          <div>
+            <ul style={{ paddingLeft: '1.25rem', margin: 0, color: 'var(--text-light)' }}>
+              <li style={{ marginBottom: '1rem' }}><strong>மண்-உப்பு உற்பத்தி:</strong> இவர்களின் பாரம்பரியத் தொழில் பெயருக்கு ஏற்றாற்போல் நிலத்தில் இருந்து மண்-உப்பு (சுதேசி உப்பு) தயாரிப்பதாகும்.</li>
+              <li style={{ marginBottom: '1rem' }}><strong>கட்டுமானப் பணிகள்:</strong> உப்பு உற்பத்தி மட்டுமின்றி, ஆரம்பக் காலத்தில் இவர்கள் கிணறுகள் தோண்டுதல், ஏரி/கால்வாய் வெட்டுதல், செங்கல் சூளை அமைத்தல், கோட்டைகள் மற்றும் வீடுகள் கட்டுதல் போன்ற உன்னதமான மண் சார்ந்த கட்டுமானப் பணிகளிலும் மிகச் சிறப்பாக ஈடுபட்டுள்ளனர். [3]</li>
+            </ul>
+          </div>
+
+          {/* Infographic Image placed on the RIGHT */}
+          <div style={{
+            borderRadius: '1.25rem',
+            overflow: 'hidden',
+            border: '1px solid rgba(245,158,11,0.3)',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.4)',
+            background: 'rgba(15,23,42,0.6)',
+            textAlign: 'center',
+            padding: '0.5rem'
+          }}>
+            <Image
+              src="/images/uppliya_2.png"
+              alt="Uppiliya Naicker Etymology & Historical Profession Infographic"
+              width={800}
+              height={1200}
+              style={{ width: '100%', height: 'auto', maxHeight: '520px', objectFit: 'contain', borderRadius: '0.85rem' }}
+            />
+            <p style={{ margin: '0.5rem 0 0.2rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              📌 வரலாற்றுப் பின்னணி (Historical Infographic)
+            </p>
+          </div>
         </div>
 
         <h2 style={{ color: 'var(--primary)', marginTop: '2rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>2. தோற்றமும் இடப்பெயர்வும்</h2>

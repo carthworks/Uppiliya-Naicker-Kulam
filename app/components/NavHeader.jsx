@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
   { href: '/',              label: 'Home',                  ta: 'Home',             special: false },
+  { href: '/#kulam-search', label: 'குலங்கள் (Kulam)',     ta: 'குலங்கள்',         special: false },
   { href: '/history',       label: 'வரலாறு (History)',      ta: 'வரலாறு',         special: false },
   { href: '/thought',       label: 'சிந்தனைகள் (Thought)', ta: 'சிந்தனைகள்',     special: true  },
   { href: '/rasi-porutham', label: 'ராசி பொருத்தம்',       ta: 'ராசி பொருத்தம்',special: false },
