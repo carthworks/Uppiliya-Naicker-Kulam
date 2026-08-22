@@ -4,6 +4,12 @@ import NavHeader from './components/NavHeader';
 
 const baseUrl = 'https://uppiliya-naicker-kulam.vercel.app';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0f172a',
+};
+
 export const metadata = {
   metadataBase: new URL(baseUrl),
   title: {

@@ -834,6 +834,24 @@ ${bestText}
         .gr-icon { flex-shrink: 0; font-size: 1.1rem; }
 
         .ho-disclaimer { margin-top: 2rem; padding: 1rem 1.25rem; border-radius: .85rem; background: rgba(234,179,8,0.07); border: 1px solid rgba(234,179,8,0.2); font-size: .82rem; color: rgba(253,224,71,0.85); line-height: 1.6; }
+
+        /* ── Mobile Enhancements ── */
+        @media(max-width: 600px) {
+          .ho-page { padding: 1.5rem 0.85rem 3.5rem; }
+          .ho-card { padding: 1.25rem 1rem; border-radius: 1rem; }
+          .hc-current-card { padding: 1.25rem 1rem; gap: 0.85rem; }
+          .hc-current-symbol { font-size: 2.5rem; }
+          .hc-current-planet { font-size: 1.45rem; }
+          .ho-hero { margin-bottom: 1.75rem; }
+          .ho-location-box { padding: 1rem; }
+          .ho-loc-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+          .ho-loc-actions { width: 100%; }
+          .ho-city-select { width: 100%; }
+          .ho-loc-btn { width: 100%; text-align: center; }
+          .ho-mode-bar { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+          .ho-share-btn { justify-content: center; width: 100%; }
+          .pk-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
 
       <main className="ho-page">

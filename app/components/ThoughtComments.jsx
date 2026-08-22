@@ -144,11 +144,12 @@ export default function ThoughtComments() {
       {/* Section Title */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem'
+        marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem',
+        flexWrap: 'wrap', gap: '0.75rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{ fontSize: '1.8rem' }}>💬</span>
-          <h2 style={{ fontSize: '1.6rem', color: '#ffffff', margin: 0, fontWeight: '800' }}>
+          <h2 style={{ fontSize: 'clamp(1.15rem, 3.5vw, 1.6rem)', color: '#ffffff', margin: 0, fontWeight: '800' }}>
             சமூக மக்களின் சிந்தனைகள் & விவாதங்கள்
           </h2>
         </div>
@@ -166,17 +167,17 @@ export default function ThoughtComments() {
         background: 'rgba(15, 23, 42, 0.85)',
         border: '1px solid rgba(245,158,11,0.3)',
         borderRadius: '1.25rem',
-        padding: '1.5rem',
+        padding: 'clamp(1rem, 3vw, 1.5rem)',
         marginBottom: '2.5rem',
         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
         backdropFilter: 'blur(12px)'
       }}>
-        <h3 style={{ fontSize: '1.2rem', color: '#f59e0b', marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <h3 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: '#f59e0b', marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           ✍️ உங்கள் சிந்தனையையும் கருத்துகளையும் பகிர்க (Add Your Thought)
         </h3>
 
         <form onSubmit={handleAddComment} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '0.75rem' }}>
             <input
               type="text"
               placeholder="உங்கள் பெயர் (எ.கா: கே. பாலசுப்பிரமணியன்)"
