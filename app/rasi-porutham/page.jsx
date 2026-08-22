@@ -329,20 +329,81 @@ function calculate12Porutham(boyStarId, boyPada, girlStarId, girlPada, boySevvai
    Main Page Component
 ───────────────────────────────────────────── */
 export default function RasiPoruthamPage() {
+  // Mode: 'manual' | 'birth_details'
+  const [inputMode, setInputMode] = useState('manual');
+  
+  // Birth Details State
+  const [boyDob, setBoyDob] = useState('');
+  const [boyTime, setBoyTime] = useState('');
+  const [boyPlace, setBoyPlace] = useState('');
+  
+  const [girlDob, setGirlDob] = useState('');
+  const [girlTime, setGirlTime] = useState('');
+  const [girlPlace, setGirlPlace] = useState('');
+
   // Groom Defaults: Ashwini Pada 1 (Mesham)
   const [boyStarId, setBoyStarId] = useState(1);
   const [boyPada, setBoyPada]     = useState(1);
   const [boySevvai, setBoySevvai] = useState(false);
   const [boyRahu, setBoyRahu]     = useState(false);
+  const [boyNameInput, setBoyNameInput] = useState('');
 
   // Bride Defaults: Mrigashira Pada 1 (Rishabam)
   const [girlStarId, setGirlStarId] = useState(5);
   const [girlPada, setGirlPada]     = useState(1);
   const [girlSevvai, setGirlSevvai] = useState(false);
   const [girlRahu, setGirlRahu]     = useState(false);
+  const [girlNameInput, setGirlNameInput] = useState('');
 
   // Active Tab: 'porutham' | 'dosha' | 'rules' | 'kulam_rules'
   const [activeTab, setActiveTab] = useState('porutham');
+
+  // Handle English to Tamil Transliteration
+  const handleNameChange = async (value, target) => {
+    if (target === 'boy') setBoyNameInput(value);
+    else setGirlNameInput(value);
+
+    // Auto transliterate words when space is typed
+    if (value.endsWith(' ')) {
+      const words = value.split(' ');
+      const lastWord = words[words.length - 2];
+      if (lastWord && /^[a-zA-Z]+$/.test(lastWord)) {
+        try {
+          const res = await fetch(`/api/transliterate?text=${lastWord}`);
+          const data = await res.json();
+          if (data.result) {
+            words[words.length - 2] = data.result;
+            const newVal = words.join(' ');
+            if (target === 'boy') setBoyNameInput(newVal);
+            else setGirlNameInput(newVal);
+          }
+        } catch (e) { console.error('Transliteration failed:', e); }
+      }
+    }
+  };
+
+  // Auto-find star and pada by name (முதல் எழுத்து / நாம அக்ஷரம்)
+  const handleAutoFindByName = (name, target) => {
+    if (!name.trim()) return;
+    const clean = name.trim();
+    // Search matching letters across all 27 stars
+    for (const star of rasiData.nakshatras) {
+      if (!star.letters) continue;
+      for (let p = 0; p < star.letters.length; p++) {
+        const letter = star.letters[p];
+        if (clean.startsWith(letter) || letter.startsWith(clean[0])) {
+          if (target === 'boy') {
+            setBoyStarId(star.id);
+            setBoyPada(p + 1);
+          } else {
+            setGirlStarId(star.id);
+            setGirlPada(p + 1);
+          }
+          return;
+        }
+      }
+    }
+  };
 
   // Calculate live matching result
   const result = useMemo(() => {
@@ -450,7 +511,8 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
         .rp-field { margin-bottom: 1rem; }
         .rp-field:last-child { margin-bottom: 0; }
         .rp-label {
-          display: block; font-size: .85rem; font-weight: 600; color: #cbd5e1;
+          display: flex; align-items: center; justify-content: space-between;
+          font-size: .85rem; font-weight: 600; color: #cbd5e1;
           margin-bottom: .4rem;
         }
         .rp-select {
@@ -462,22 +524,45 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
         }
         .rp-select:focus { border-color: #c084fc; }
 
-        /* Pada Selector Grid */
+        /* Auto Name Finder Box */
+        .rp-name-finder {
+          display: flex; gap: .45rem; margin-bottom: .85rem;
+        }
+        .rp-name-input {
+          flex: 1; padding: .45rem .75rem; border-radius: .55rem;
+          background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);
+          color: #fff; font-size: .82rem; font-family: inherit; outline: none;
+        }
+        .rp-name-btn {
+          padding: .45rem .8rem; border-radius: .55rem; border: none;
+          background: #8b5cf6; color: #fff; font-size: .78rem; font-weight: 700;
+          cursor: pointer; font-family: inherit; transition: background .15s;
+          white-space: nowrap;
+        }
+        .rp-name-btn:hover { background: #7c3aed; }
+
+        /* Pada Selector Grid with Letters */
         .rp-pada-grid {
           display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem;
           margin-top: .35rem;
         }
         .rp-pada-btn {
-          padding: .45rem .3rem; text-align: center; border-radius: .55rem;
+          padding: .5rem .25rem; text-align: center; border-radius: .65rem;
           border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3);
-          color: #94a3b8; font-size: .82rem; font-weight: 700; cursor: pointer;
+          color: #cbd5e1; font-size: .8rem; font-weight: 700; cursor: pointer;
           font-family: inherit; transition: all .15s;
+          display: flex; flex-direction: column; align-items: center; gap: .15rem;
         }
         .rp-pada-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .rp-pada-btn.active {
           background: #8b5cf6; border-color: #a78bfa; color: #fff;
-          box-shadow: 0 2px 8px rgba(139,92,246,0.35);
+          box-shadow: 0 2px 10px rgba(139,92,246,0.4);
         }
+        .rp-pada-letter {
+          font-size: .72rem; color: #fbbf24; font-weight: 800;
+          background: rgba(0,0,0,0.25); padding: .05rem .35rem; border-radius: .3rem;
+        }
+        .rp-pada-btn.active .rp-pada-letter { color: #ffffff; background: rgba(0,0,0,0.35); }
 
         /* Auto-detected Rasi Banner */
         .rp-auto-rasi {
@@ -700,11 +785,21 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
               <div className="rp-card">
                 <div className="rp-card-title">
                   <span>👫 வரன் விவரங்கள் (Groom &amp; Bride Details)</span>
-                  <span style={{ fontSize: '.78rem', color: '#94a3b8', fontWeight: 500 }}>
-                    பாதத்தை (1-4) மாற்றினால் துல்லிய ராசி தானாக கணிக்கப்படும்
-                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button 
+                      onClick={() => setInputMode('manual')}
+                      style={{ fontSize: '.8rem', fontWeight: 600, padding: '0.45rem 1rem', borderRadius: '999px', background: inputMode === 'manual' ? '#8b5cf6' : 'rgba(255,255,255,0.08)', color: '#fff', border: '1px solid', borderColor: inputMode === 'manual' ? '#a78bfa' : 'rgba(255,255,255,0.15)', cursor: 'pointer', transition: 'all 0.2s' }}>
+                      நேரடி தேர்வு
+                    </button>
+                    <button 
+                      onClick={() => setInputMode('birth_details')}
+                      style={{ fontSize: '.8rem', fontWeight: 600, padding: '0.45rem 1rem', borderRadius: '999px', background: inputMode === 'birth_details' ? '#ec4899' : 'rgba(255,255,255,0.08)', color: '#fff', border: '1px solid', borderColor: inputMode === 'birth_details' ? '#f472b6' : 'rgba(255,255,255,0.15)', cursor: 'pointer', transition: 'all 0.2s' }}>
+                      பிறந்த நேரப்படி
+                    </button>
+                  </div>
                 </div>
 
+                {inputMode === 'manual' ? (
                 <div className="rp-form-grid">
                   {/* Boy Column */}
                   <div className="rp-column">
@@ -713,9 +808,35 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
                       <span style={{ fontSize: '.78rem', color: '#94a3b8' }}>ஆண் வரன்</span>
                     </div>
 
+                    {/* Auto Finder by Name */}
+                    <div className="rp-field">
+                      <div className="rp-label">
+                        <span>பெயர் மூலம் பாதம் கண்டறிதல்:</span>
+                        <span style={{ fontSize: '.72rem', color: '#94a3b8' }}>Optional</span>
+                      </div>
+                      <div className="rp-name-finder">
+                        <input
+                          type="text"
+                          className="rp-name-input"
+                          placeholder="எ.கா: சுரேஷ், கார்த்திக், விஜய்..."
+                          value={boyNameInput}
+                          onChange={e => handleNameChange(e.target.value, 'boy')}
+                        />
+                        <button
+                          type="button"
+                          className="rp-name-btn"
+                          onClick={() => handleAutoFindByName(boyNameInput, 'boy')}
+                        >
+                          கண்டறி
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Star Selector */}
                     <div className="rp-field">
-                      <label className="rp-label">நட்சத்திரம் (Nakshatra):</label>
+                      <label className="rp-label">
+                        <span>நட்சத்திரம் (Nakshatra):</span>
+                      </label>
                       <select
                         className="rp-select"
                         value={boyStarId}
@@ -729,20 +850,28 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
                       </select>
                     </div>
 
-                    {/* Pada 1..4 Selector */}
+                    {/* Pada 1..4 Selector with Nama Aksharas */}
                     <div className="rp-field">
-                      <label className="rp-label">பாதம் (Pada):</label>
+                      <label className="rp-label">
+                        <span>பாதம் (Pada &amp; எழுத்து):</span>
+                        <span style={{ fontSize: '.72rem', color: '#fbbf24' }}>நாம அக்ஷரம்</span>
+                      </label>
                       <div className="rp-pada-grid">
-                        {[1, 2, 3, 4].map(p => (
-                          <button
-                            key={p}
-                            type="button"
-                            className={`rp-pada-btn ${boyPada === p ? 'active' : ''}`}
-                            onClick={() => setBoyPada(p)}
-                          >
-                            பாதம் {p}
-                          </button>
-                        ))}
+                        {[1, 2, 3, 4].map(p => {
+                          const star = rasiData.nakshatras.find(n => n.id === boyStarId);
+                          const letter = star?.letters?.[p - 1] || '';
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              className={`rp-pada-btn ${boyPada === p ? 'active' : ''}`}
+                              onClick={() => setBoyPada(p)}
+                            >
+                              <span>பாதம் {p}</span>
+                              {letter && <span className="rp-pada-letter">{letter}</span>}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -800,9 +929,35 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
                       <span style={{ fontSize: '.78rem', color: '#94a3b8' }}>பெண் வரன்</span>
                     </div>
 
+                    {/* Auto Finder by Name */}
+                    <div className="rp-field">
+                      <div className="rp-label">
+                        <span>பெயர் மூலம் பாதம் கண்டறிதல்:</span>
+                        <span style={{ fontSize: '.72rem', color: '#94a3b8' }}>Optional</span>
+                      </div>
+                      <div className="rp-name-finder">
+                        <input
+                          type="text"
+                          className="rp-name-input"
+                          placeholder="எ.கா: அனிதா, பிரியா, தீபா..."
+                          value={girlNameInput}
+                          onChange={e => handleNameChange(e.target.value, 'girl')}
+                        />
+                        <button
+                          type="button"
+                          className="rp-name-btn"
+                          onClick={() => handleAutoFindByName(girlNameInput, 'girl')}
+                        >
+                          கண்டறி
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Star Selector */}
                     <div className="rp-field">
-                      <label className="rp-label">நட்சத்திரம் (Nakshatra):</label>
+                      <label className="rp-label">
+                        <span>நட்சத்திரம் (Nakshatra):</span>
+                      </label>
                       <select
                         className="rp-select"
                         value={girlStarId}
@@ -816,20 +971,28 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
                       </select>
                     </div>
 
-                    {/* Pada 1..4 Selector */}
+                    {/* Pada 1..4 Selector with Nama Aksharas */}
                     <div className="rp-field">
-                      <label className="rp-label">பாதம் (Pada):</label>
+                      <label className="rp-label">
+                        <span>பாதம் (Pada &amp; எழுத்து):</span>
+                        <span style={{ fontSize: '.72rem', color: '#fbbf24' }}>நாம அக்ஷரம்</span>
+                      </label>
                       <div className="rp-pada-grid">
-                        {[1, 2, 3, 4].map(p => (
-                          <button
-                            key={p}
-                            type="button"
-                            className={`rp-pada-btn ${girlPada === p ? 'active' : ''}`}
-                            onClick={() => setGirlPada(p)}
-                          >
-                            பாதம் {p}
-                          </button>
-                        ))}
+                        {[1, 2, 3, 4].map(p => {
+                          const star = rasiData.nakshatras.find(n => n.id === girlStarId);
+                          const letter = star?.letters?.[p - 1] || '';
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              className={`rp-pada-btn ${girlPada === p ? 'active' : ''}`}
+                              onClick={() => setGirlPada(p)}
+                            >
+                              <span>பாதம் {p}</span>
+                              {letter && <span className="rp-pada-letter">{letter}</span>}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -880,6 +1043,79 @@ ${result.poruthams.map(p => `${p.score >= 0.5 ? '✅' : '❌'} ${p.name}: ${p.no
                     </div>
                   </div>
                 </div>
+                ) : (
+                <div className="rp-form-grid">
+                  {/* Boy Birth Details Column */}
+                  <div className="rp-column">
+                    <div className="rp-col-header rp-boy-head">
+                      <span>👦 மணமகன் (Groom)</span>
+                      <span style={{ fontSize: '.78rem', color: '#94a3b8' }}>பிறந்த விவரங்கள்</span>
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த தேதி:</label>
+                      <input type="date" className="rp-select" value={boyDob} onChange={e => setBoyDob(e.target.value)} />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த நேரம்:</label>
+                      <input type="time" className="rp-select" value={boyTime} onChange={e => setBoyTime(e.target.value)} />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த இடம் (City):</label>
+                      <input type="text" className="rp-select" placeholder="எ.கா: மதுரை" value={boyPlace} onChange={e => setBoyPlace(e.target.value)} />
+                    </div>
+                    
+                    {/* Dosha Checkboxes for Boy */}
+                    <div className="rp-dosha-toggles">
+                      <label className="rp-checkbox-wrap">
+                        <input type="checkbox" checked={boySevvai} onChange={e => setBoySevvai(e.target.checked)} />
+                        <span className="rp-checkbox-label">செவ்வாய் தோஷம்</span>
+                      </label>
+                      <label className="rp-checkbox-wrap">
+                        <input type="checkbox" checked={boyRahu} onChange={e => setBoyRahu(e.target.checked)} />
+                        <span className="rp-checkbox-label">ராகு-கேது தோஷம்</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Girl Birth Details Column */}
+                  <div className="rp-column">
+                    <div className="rp-col-header rp-girl-head">
+                      <span>👧 மணமகள் (Bride)</span>
+                      <span style={{ fontSize: '.78rem', color: '#94a3b8' }}>பிறந்த விவரங்கள்</span>
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த தேதி:</label>
+                      <input type="date" className="rp-select" value={girlDob} onChange={e => setGirlDob(e.target.value)} />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த நேரம்:</label>
+                      <input type="time" className="rp-select" value={girlTime} onChange={e => setGirlTime(e.target.value)} />
+                    </div>
+                    <div className="rp-field">
+                      <label className="rp-label">பிறந்த இடம் (City):</label>
+                      <input type="text" className="rp-select" placeholder="எ.கா: சென்னை" value={girlPlace} onChange={e => setGirlPlace(e.target.value)} />
+                    </div>
+                    
+                    {/* Dosha Checkboxes for Girl */}
+                    <div className="rp-dosha-toggles">
+                      <label className="rp-checkbox-wrap">
+                        <input type="checkbox" checked={girlSevvai} onChange={e => setGirlSevvai(e.target.checked)} />
+                        <span className="rp-checkbox-label">செவ்வாய் தோஷம்</span>
+                      </label>
+                      <label className="rp-checkbox-wrap">
+                        <input type="checkbox" checked={girlRahu} onChange={e => setGirlRahu(e.target.checked)} />
+                        <span className="rp-checkbox-label">ராகு-கேது தோஷம்</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1', marginTop: '1rem', padding: '1rem', background: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.3)', borderRadius: '0.75rem' }}>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#fbcfe8', textAlign: 'center', lineHeight: 1.6 }}>
+                      ⚠️ <strong>குறிப்பு:</strong> பிறந்த நேரம் மூலம் துல்லியமாக நட்சத்திரம் கணிக்க, ஆஸ்ட்ரோ API ஒருங்கிணைப்பு விரைவில் வரவுள்ளது. தற்போது "நேரடி தேர்வு" முறையை பயன்படுத்தி நட்சத்திரம்/பாதம் மூலம் பொருத்தத்தை கணிக்கவும்.
+                    </p>
+                  </div>
+                </div>
+                )}
               </div>
 
               {/* ── Match Result Banner ── */}
