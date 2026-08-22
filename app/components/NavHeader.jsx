@@ -21,8 +21,36 @@ export default function NavHeader() {
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(true);
+  const [theme, setTheme] = useState('dark');
   const pathname = usePathname();
   const dropdownRef = useRef(null);
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('uppiliya_theme');
+      const initial = saved === 'light' ? 'light' : 'dark';
+      setTheme(initial);
+      document.documentElement.setAttribute('data-theme', initial);
+      document.body.setAttribute('data-theme', initial);
+    } catch {
+      // fallback
+    }
+  }, []);
+
+  // Toggle theme
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    try {
+      localStorage.setItem('uppiliya_theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      document.body.setAttribute('data-theme', next);
+      window.dispatchEvent(new CustomEvent('uppiliya_theme_change', { detail: { theme: next } }));
+    } catch {
+      // fallback
+    }
+  };
 
   // close on route change
   useEffect(() => {
@@ -60,10 +88,16 @@ export default function NavHeader() {
           padding: 0.85rem 1.5rem;
           border-bottom: 1px solid var(--border-color);
           display: flex; justify-content: space-between; align-items: center;
-          background: rgba(15,23,42,0.85);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
+          background: rgba(15,23,42,0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
           position: sticky; top: 0; z-index: 200;
+          transition: background-color .3s, border-color .3s;
+        }
+
+        [data-theme="light"] .nav-header {
+          background: rgba(255, 255, 255, 0.92);
+          border-bottom-color: rgba(0, 0, 0, 0.1);
         }
 
         /* ── Brand ── */
@@ -75,6 +109,10 @@ export default function NavHeader() {
         }
 
         /* ── Desktop nav ── */
+        .nav-right-wrap {
+          display: flex; align-items: center; gap: 0.75rem;
+        }
+
         .nav-links {
           display: flex; gap: 0.35rem; align-items: center; list-style: none;
         }
@@ -88,6 +126,10 @@ export default function NavHeader() {
         }
         .nav-link:hover       { color: var(--text-light); background: rgba(255,255,255,0.06); }
         .nav-link.active      { color: var(--text-light); background: rgba(255,255,255,0.1); }
+        
+        [data-theme="light"] .nav-link:hover { color: #0f172a; background: rgba(0,0,0,0.05); }
+        [data-theme="light"] .nav-link.active { color: #0f172a; background: rgba(0,0,0,0.08); font-weight: 700; }
+
         .nav-link.special {
           font-weight: 700;
           background: linear-gradient(90deg,#f59e0b,#f97316);
@@ -114,6 +156,12 @@ export default function NavHeader() {
           color: var(--text-light);
           background: rgba(255,255,255,0.06);
         }
+        [data-theme="light"] .nav-dropdown-btn:hover,
+        [data-theme="light"] .nav-dropdown-btn.active,
+        [data-theme="light"] .nav-dropdown-wrap:hover .nav-dropdown-btn {
+          color: #0f172a;
+          background: rgba(0,0,0,0.05);
+        }
         .nav-dropdown-arrow {
           font-size: 0.7rem; transition: transform .2s ease;
         }
@@ -135,6 +183,11 @@ export default function NavHeader() {
           animation: dropIn .2s ease-out;
           z-index: 250;
         }
+        [data-theme="light"] .nav-dropdown-menu {
+          background: rgba(255, 255, 255, 0.98);
+          border-color: rgba(0, 0, 0, 0.12);
+          box-shadow: 0 16px 36px rgba(0,0,0,0.15);
+        }
         @keyframes dropIn {
           from { opacity: 0; transform: translateY(-8px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -152,6 +205,10 @@ export default function NavHeader() {
           border-color: rgba(255,255,255,0.08);
           transform: translateX(2px);
         }
+        [data-theme="light"] .nav-dropdown-item:hover {
+          background: rgba(0, 0, 0, 0.04);
+          border-color: rgba(0, 0, 0, 0.06);
+        }
         .nav-dropdown-item.active {
           background: rgba(192,132,252,0.12);
           border-color: rgba(192,132,252,0.3);
@@ -166,8 +223,34 @@ export default function NavHeader() {
           font-size: 0.9rem; font-weight: 700; color: #f8fafc;
           display: flex; align-items: center; justify-content: space-between;
         }
+        [data-theme="light"] .nav-dropdown-title {
+          color: #0f172a;
+        }
         .nav-dropdown-desc {
           font-size: 0.75rem; color: #94a3b8; margin-top: 0.15rem; line-height: 1.35;
+        }
+
+        /* ── Top Theme Button (Navbar) ── */
+        .nav-theme-btn {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.42rem 0.85rem; border-radius: 999px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          color: var(--text-light); font-size: 0.82rem; font-weight: 700;
+          cursor: pointer; font-family: inherit;
+          transition: all 0.2s; white-space: nowrap;
+        }
+        .nav-theme-btn:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: translateY(-1px);
+        }
+        [data-theme="light"] .nav-theme-btn {
+          background: rgba(0, 0, 0, 0.05);
+          border-color: rgba(0, 0, 0, 0.15);
+          color: #0f172a;
+        }
+        [data-theme="light"] .nav-theme-btn:hover {
+          background: rgba(0, 0, 0, 0.1);
         }
 
         /* ── Hamburger button ── */
@@ -179,12 +262,18 @@ export default function NavHeader() {
           border-radius: 8px; cursor: pointer; padding: 0;
           transition: background .2s;
         }
+        [data-theme="light"] .nav-toggle {
+          background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.12);
+        }
         .nav-toggle:hover { background: rgba(255,255,255,0.1); }
         .nav-toggle span {
           display: block; width: 20px; height: 2px;
           background: var(--text-light); border-radius: 2px;
           transition: transform .3s, opacity .3s;
           transform-origin: center;
+        }
+        [data-theme="light"] .nav-toggle span {
+          background: #0f172a;
         }
         .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
         .nav-toggle.open span:nth-child(2) { opacity: 0; }
@@ -204,6 +293,9 @@ export default function NavHeader() {
           animation: drawerIn .22s ease;
           overflow-y: auto;
         }
+        [data-theme="light"] .nav-drawer {
+          background: rgba(245, 248, 252, 0.98);
+        }
         .nav-drawer.open { display: flex; }
         @keyframes drawerIn {
           from { opacity: 0; transform: translateY(-8px); }
@@ -213,6 +305,9 @@ export default function NavHeader() {
           font-size: 1.05rem; padding: 0.75rem 1rem; border-radius: 10px;
           border: 1px solid rgba(255,255,255,0.07);
           display: flex; align-items: center; justify-content: space-between;
+        }
+        [data-theme="light"] .nav-drawer .nav-link {
+          border-color: rgba(0,0,0,0.08);
         }
         .nav-drawer .nav-link.special {
           border-color: rgba(245,158,11,0.25);
@@ -230,11 +325,18 @@ export default function NavHeader() {
           padding: 0.5rem;
           display: flex; flex-direction: column; gap: 0.35rem;
         }
+        [data-theme="light"] .nav-drawer-submenu-box {
+          background: rgba(0,0,0,0.03);
+          border-color: rgba(0,0,0,0.1);
+        }
         .nav-drawer-submenu-header {
           display: flex; justify-content: space-between; align-items: center;
           padding: 0.5rem 0.75rem;
           font-size: 0.85rem; font-weight: 700; color: #c084fc;
           cursor: pointer; user-select: none;
+        }
+        [data-theme="light"] .nav-drawer-submenu-header {
+          color: #7c3aed;
         }
         .nav-drawer-sub-item {
           text-decoration: none;
@@ -245,19 +347,31 @@ export default function NavHeader() {
           background: rgba(255,255,255,0.02);
           transition: background .15s;
         }
+        [data-theme="light"] .nav-drawer-sub-item {
+          color: #0f172a;
+          background: rgba(0,0,0,0.02);
+        }
         .nav-drawer-sub-item:hover,
         .nav-drawer-sub-item.active {
           background: rgba(192,132,252,0.15);
           color: #fff;
         }
+        [data-theme="light"] .nav-drawer-sub-item:hover,
+        [data-theme="light"] .nav-drawer-sub-item.active {
+          background: rgba(124, 58, 237, 0.12);
+          color: #7c3aed;
+        }
         .nav-drawer-divider {
           height: 1px; background: rgba(255,255,255,0.07); margin: 0.25rem 0;
         }
+        [data-theme="light"] .nav-drawer-divider {
+          background: rgba(0,0,0,0.08);
+        }
 
-        @media (max-width: 780px) {
+        @media (max-width: 820px) {
           .nav-toggle { display: flex; }
           .nav-links   { display: none; }
-          .nav-header  { padding: 0.8rem 1.1rem; }
+          .nav-header  { padding: 0.8rem 1rem; }
         }
       `}</style>
 
@@ -267,83 +381,97 @@ export default function NavHeader() {
           <span>🏛️</span> Uppiliya.community
         </Link>
 
-        {/* Desktop links */}
-        <ul className="nav-links" role="navigation" aria-label="Main navigation">
-          {/* Home */}
-          <li>
-            <Link
-              href="/"
-              className={`nav-link ${pathname === '/' ? 'active' : ''}`}
-            >
-              முகப்பு
-            </Link>
-          </li>
-
-          {/* Submenu: சமூகம் (Community) */}
-          <li
-            className="nav-dropdown-wrap"
-            ref={dropdownRef}
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
-          >
-            <button
-              className={`nav-dropdown-btn ${isCommunityActive ? 'active' : ''} ${dropdownOpen ? 'open' : ''}`}
-              onClick={() => setDropdownOpen(o => !o)}
-              aria-expanded={dropdownOpen}
-              aria-haspopup="true"
-            >
-              <span>🏛️ சமூகம்</span>
-              <span className="nav-dropdown-arrow">▼</span>
-            </button>
-
-            {dropdownOpen && (
-              <div className="nav-dropdown-menu">
-                {COMMUNITY_SUBMENU.map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`nav-dropdown-item ${pathname === item.href ? 'active' : ''}`}
-                    onClick={() => setDropdownOpen(false)}
-                  >
-                    <span className="nav-dropdown-icon">{item.icon}</span>
-                    <div className="nav-dropdown-text">
-                      <div className="nav-dropdown-title">
-                        {item.label}
-                      </div>
-                      <div className="nav-dropdown-desc">{item.desc}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </li>
-
-          {/* Other main links */}
-          {MAIN_NAV_LINKS.slice(1).map(({ href, label, special }) => (
-            <li key={href}>
+        {/* Right side wrap */}
+        <div className="nav-right-wrap">
+          {/* Desktop links */}
+          <ul className="nav-links" role="navigation" aria-label="Main navigation">
+            {/* Home */}
+            <li>
               <Link
-                href={href}
-                className={[
-                  'nav-link',
-                  special ? 'special' : '',
-                  pathname === href ? 'active' : '',
-                ].join(' ').trim()}
+                href="/"
+                className={`nav-link ${pathname === '/' ? 'active' : ''}`}
               >
-                {label}
+                முகப்பு
               </Link>
             </li>
-          ))}
-        </ul>
 
-        {/* Hamburger */}
-        <button
-          className={`nav-toggle ${open ? 'open' : ''}`}
-          aria-label="Toggle navigation"
-          aria-expanded={open}
-          onClick={() => setOpen(o => !o)}
-        >
-          <span /><span /><span />
-        </button>
+            {/* Submenu: சமூகம் (Community) */}
+            <li
+              className="nav-dropdown-wrap"
+              ref={dropdownRef}
+              onMouseEnter={() => setDropdownOpen(true)}
+              onMouseLeave={() => setDropdownOpen(false)}
+            >
+              <button
+                className={`nav-dropdown-btn ${isCommunityActive ? 'active' : ''} ${dropdownOpen ? 'open' : ''}`}
+                onClick={() => setDropdownOpen(o => !o)}
+                aria-expanded={dropdownOpen}
+                aria-haspopup="true"
+              >
+                <span>🏛️ சமூகம்</span>
+                <span className="nav-dropdown-arrow">▼</span>
+              </button>
+
+              {dropdownOpen && (
+                <div className="nav-dropdown-menu">
+                  {COMMUNITY_SUBMENU.map(item => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`nav-dropdown-item ${pathname === item.href ? 'active' : ''}`}
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <span className="nav-dropdown-icon">{item.icon}</span>
+                      <div className="nav-dropdown-text">
+                        <div className="nav-dropdown-title">
+                          {item.label}
+                        </div>
+                        <div className="nav-dropdown-desc">{item.desc}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </li>
+
+            {/* Other main links */}
+            {MAIN_NAV_LINKS.slice(1).map(({ href, label, special }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={[
+                    'nav-link',
+                    special ? 'special' : '',
+                    pathname === href ? 'active' : '',
+                  ].join(' ').trim()}
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Global Theme Toggle Button @ Top Navbar (All Pages) */}
+          <button
+            className="nav-theme-btn"
+            onClick={toggleTheme}
+            aria-label="Toggle dark/light theme"
+            title="கருப்பொருள் மாற்றம் (Dark / Light Theme)"
+          >
+            <span>{theme === 'dark' ? '☀️' : '🌙'}</span>
+            <span>{theme === 'dark' ? 'ஒளி' : 'இருள்'}</span>
+          </button>
+
+          {/* Hamburger (Mobile) */}
+          <button
+            className={`nav-toggle ${open ? 'open' : ''}`}
+            aria-label="Toggle navigation"
+            aria-expanded={open}
+            onClick={() => setOpen(o => !o)}
+          >
+            <span /><span /><span />
+          </button>
+        </div>
       </header>
 
       {/* Mobile drawer */}
@@ -368,7 +496,7 @@ export default function NavHeader() {
           </div>
 
           {mobileSubmenuOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', paddingLeft: '0.25rem' }}>
+            <>
               {COMMUNITY_SUBMENU.map(item => (
                 <Link
                   key={item.href}
@@ -378,18 +506,16 @@ export default function NavHeader() {
                 >
                   <span>{item.icon}</span>
                   <div>
-                    <div style={{ fontSize: '0.92rem', fontWeight: 600 }}>{item.label}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{item.desc}</div>
+                    <div style={{ fontWeight: 600 }}>{item.label}</div>
+                    <div style={{ fontSize: '.74rem', color: '#94a3b8' }}>{item.desc}</div>
                   </div>
                 </Link>
               ))}
-            </div>
+            </>
           )}
         </div>
 
-        <div className="nav-drawer-divider" />
-
-        {/* Other links */}
+        {/* Other main links in mobile drawer */}
         {MAIN_NAV_LINKS.slice(1).map(({ href, label, special }) => (
           <Link
             key={href}
@@ -402,8 +528,20 @@ export default function NavHeader() {
             onClick={() => setOpen(false)}
           >
             <span>{label}</span>
+            <span>→</span>
           </Link>
         ))}
+
+        <div className="nav-drawer-divider" />
+
+        {/* Theme toggle in mobile drawer */}
+        <button
+          className="nav-theme-btn"
+          style={{ width: '100%', justifyContent: 'center', padding: '0.75rem' }}
+          onClick={toggleTheme}
+        >
+          <span>{theme === 'dark' ? '☀️ ஒளி தீம் (Light Theme)' : '🌙 இருள் தீம் (Dark Theme)'}</span>
+        </button>
       </div>
     </>
   );

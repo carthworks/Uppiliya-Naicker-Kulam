@@ -66,19 +66,20 @@ export default function Home() {
       const saved = localStorage.getItem('uppiliya_theme');
       if (saved) setDark(saved === 'dark');
     } catch {}
+    const themeListener = e => {
+      if (e.detail?.theme) setDark(e.detail.theme === 'dark');
+    };
+    window.addEventListener('uppiliya_theme_change', themeListener);
     import('../data.json').then(m => setData(m.default));
     const handler = e => {
       if (searchRef.current && !searchRef.current.contains(e.target)) setIsSearchFocused(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    return () => {
+      window.removeEventListener('uppiliya_theme_change', themeListener);
+      document.removeEventListener('mousedown', handler);
+    };
   }, []);
-
-  const toggleTheme = () => setDark(d => {
-    const next = !d;
-    try { localStorage.setItem('uppiliya_theme', next ? 'dark' : 'light'); } catch {}
-    return next;
-  });
 
   const filteredData = useMemo(() => {
     if (!searchQuery) return data;
@@ -532,11 +533,6 @@ export default function Home() {
           </div>
 
         </div>
-
-        {/* Theme FAB */}
-        <button className="hp-fab" onClick={toggleTheme} aria-label="Toggle theme">
-          {D ? '☀️' : '🌙'} {D ? 'Light' : 'Dark'}
-        </button>
       </div>
     </>
   );
