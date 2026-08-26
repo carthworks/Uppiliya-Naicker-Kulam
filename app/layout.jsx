@@ -75,6 +75,17 @@ export const metadata = {
     description: '64 குலங்கள், குலதெய்வக் கோவில்கள், பங்காளிகள், வரலாறு மற்றும் சிந்தனைகள்.',
     images: ['/images/uppliya_2.png'],
   },
+  icons: {
+    icon: '/images/uppliakulam.png',
+    shortcut: '/images/uppliakulam.png',
+    apple: '/images/uppliakulam.png',
+  },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'உப்பிலியர் குலம்',
+  },
   robots: {
     index: true,
     follow: true,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import DesktopIconModal from './DesktopIconModal';
 
 const COMMUNITY_SUBMENU = [
   { href: '/#kulam-search', icon: '🔍', label: 'குலங்கள் தேடல்', labelEn: 'Kulam Search', desc: 'குலம், குலதெய்வம், பங்காளிகள்' },
@@ -22,8 +23,41 @@ export default function NavHeader() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(true);
   const [theme, setTheme] = useState('dark');
+  const [installModalOpen, setInstallModalOpen] = useState(false);
   const pathname = usePathname();
   const dropdownRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 280);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  // Listen for global open_install_modal event
+  useEffect(() => {
+    const handleOpenModal = () => setInstallModalOpen(true);
+    window.addEventListener('open_install_modal', handleOpenModal);
+    return () => window.removeEventListener('open_install_modal', handleOpenModal);
+  }, []);
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -171,7 +205,7 @@ export default function NavHeader() {
 
         /* ── Dropdown Menu Menu ── */
         .nav-dropdown-menu {
-          position: absolute; top: calc(100% + 8px); left: 0;
+          position: absolute; top: calc(100% + 4px); left: 0;
           min-width: 260px;
           background: rgba(15, 23, 42, 0.96);
           border: 1px solid rgba(192,132,252,0.3);
@@ -180,8 +214,18 @@ export default function NavHeader() {
           box-shadow: 0 16px 36px rgba(0,0,0,0.5), 0 0 20px rgba(192,132,252,0.15);
           backdrop-filter: blur(20px);
           display: flex; flex-direction: column; gap: 0.3rem;
-          animation: dropIn .2s ease-out;
+          animation: dropIn .18s ease-out;
           z-index: 250;
+        }
+        /* Invisible hover bridge to prevent menu from disappearing during mouse movement */
+        .nav-dropdown-menu::before {
+          content: '';
+          position: absolute;
+          top: -14px;
+          left: 0;
+          right: 0;
+          height: 14px;
+          background: transparent;
         }
         [data-theme="light"] .nav-dropdown-menu {
           background: rgba(255, 255, 255, 0.98);
@@ -189,7 +233,7 @@ export default function NavHeader() {
           box-shadow: 0 16px 36px rgba(0,0,0,0.15);
         }
         @keyframes dropIn {
-          from { opacity: 0; transform: translateY(-8px); }
+          from { opacity: 0; transform: translateY(-6px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         .nav-dropdown-item {
@@ -251,6 +295,45 @@ export default function NavHeader() {
         }
         [data-theme="light"] .nav-theme-btn:hover {
           background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* ── Install / Desktop Icon Button ── */
+        .nav-install-btn {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          padding: 0.42rem 0.85rem; border-radius: 999px;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2));
+          border: 1px solid rgba(168, 85, 247, 0.45);
+          color: var(--text-light); font-size: 0.82rem; font-weight: 700;
+          cursor: pointer; font-family: inherit;
+          transition: all 0.2s; white-space: nowrap;
+        }
+        .nav-install-btn:hover {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(168, 85, 247, 0.35));
+          border-color: rgba(168, 85, 247, 0.75);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 12px rgba(168, 85, 247, 0.25);
+        }
+        [data-theme="light"] .nav-install-btn {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(168, 85, 247, 0.12));
+          border-color: rgba(124, 58, 237, 0.3);
+          color: #6d28d9;
+        }
+        [data-theme="light"] .nav-install-btn:hover {
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(168, 85, 247, 0.2));
+        }
+
+        .nav-drawer-install-btn {
+          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+          padding: 0.8rem 1rem; border-radius: 10px;
+          background: linear-gradient(135deg, #2563eb, #7c3aed);
+          border: none; color: #ffffff;
+          font-size: 0.95rem; font-weight: 700;
+          cursor: pointer; font-family: inherit;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+          transition: transform 0.15s;
+        }
+        .nav-drawer-install-btn:active {
+          transform: scale(0.98);
         }
 
         /* ── Hamburger button ── */
@@ -399,8 +482,8 @@ export default function NavHeader() {
             <li
               className="nav-dropdown-wrap"
               ref={dropdownRef}
-              onMouseEnter={() => setDropdownOpen(true)}
-              onMouseLeave={() => setDropdownOpen(false)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
             >
               <button
                 className={`nav-dropdown-btn ${isCommunityActive ? 'active' : ''} ${dropdownOpen ? 'open' : ''}`}
@@ -450,6 +533,17 @@ export default function NavHeader() {
               </li>
             ))}
           </ul>
+
+          {/* Desktop Icon / Install Button */}
+          <button
+            className="nav-install-btn"
+            onClick={() => setInstallModalOpen(true)}
+            aria-label="Add Desktop Icon / Install Web App"
+            title="டெஸ்க்டாப் / முகப்பு ஐகான் (Add Desktop Icon)"
+          >
+            <span>💻</span>
+            <span>டெஸ்க்டாப் ஐகான்</span>
+          </button>
 
           {/* Global Theme Toggle Button @ Top Navbar (All Pages) */}
           <button
@@ -534,6 +628,17 @@ export default function NavHeader() {
 
         <div className="nav-drawer-divider" />
 
+        {/* Desktop / Mobile shortcut button in drawer */}
+        <button
+          className="nav-drawer-install-btn"
+          onClick={() => {
+            setOpen(false);
+            setInstallModalOpen(true);
+          }}
+        >
+          <span>📲 டெஸ்க்டாப் / முகப்பு ஐகான் சேர்க்க</span>
+        </button>
+
         {/* Theme toggle in mobile drawer */}
         <button
           className="nav-theme-btn"
@@ -543,6 +648,12 @@ export default function NavHeader() {
           <span>{theme === 'dark' ? '☀️ ஒளி தீம் (Light Theme)' : '🌙 இருள் தீம் (Dark Theme)'}</span>
         </button>
       </div>
+
+      {/* Desktop / Mobile shortcut modal */}
+      <DesktopIconModal
+        isOpen={installModalOpen}
+        onClose={() => setInstallModalOpen(false)}
+      />
     </>
   );
 }

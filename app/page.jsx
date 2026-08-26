@@ -236,6 +236,37 @@ export default function Home() {
           border-radius:999px; border:1px solid; letter-spacing:.04em;
         }
 
+        /* ── Install Banner ── */
+        .hp-install-banner {
+          margin-top: 1rem;
+          padding: 0.85rem 1.1rem;
+          border-radius: 1rem;
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(168, 85, 247, 0.14));
+          border: 1px solid rgba(168, 85, 247, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .hp-install-banner:hover {
+          transform: translateY(-2px);
+          border-color: rgba(168, 85, 247, 0.65);
+          box-shadow: 0 4px 18px rgba(168, 85, 247, 0.2);
+        }
+        .hp-ib-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .hp-ib-icon { font-size: 1.6rem; flex-shrink: 0; }
+        .hp-ib-title { font-size: 0.9rem; font-weight: 700; color: ${text}; }
+        .hp-ib-desc { font-size: 0.73rem; color: ${textMuted}; margin-top: 0.1rem; }
+        .hp-ib-btn {
+          padding: 0.45rem 0.85rem; border-radius: 8px; border: none;
+          background: linear-gradient(135deg, #2563eb, #7c3aed);
+          color: #fff; font-size: 0.8rem; font-weight: 700;
+          cursor: pointer; font-family: inherit; flex-shrink: 0;
+          white-space: nowrap;
+        }
+
         /* ── Right ── */
         .hp-right {
           background:${card}; border:1px solid ${cardBorder};
@@ -404,6 +435,25 @@ export default function Home() {
                   </Link>
                 ))}
               </div>
+            </div>
+
+            {/* Desktop / Mobile shortcut trigger banner */}
+            <div
+              className="hp-install-banner"
+              onClick={() => window.dispatchEvent(new CustomEvent('open_install_modal'))}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="hp-ib-left">
+                <span className="hp-ib-icon">💻</span>
+                <div>
+                  <div className="hp-ib-title">டெஸ்க்டாப் / மொபைல் ஆப் ஐகான் சேர்க்க</div>
+                  <div className="hp-ib-desc">Install Web App &amp; Create Desktop Shortcut Icon</div>
+                </div>
+              </div>
+              <button className="hp-ib-btn" aria-label="Open Desktop Icon Modal">
+                ஐகான் சேர் ➔
+              </button>
             </div>
 
           </div>
