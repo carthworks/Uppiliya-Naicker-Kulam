@@ -1,3 +1,22 @@
 [
-
+  {
+    "id": "evt-1724700001",
+    "category": "career",
+    "categoryName": "பொதுக் கலந்துரையாடல்",
+    "badgeColor": "#a855f7",
+    "title": "Uppiliyar Kalam நம் சிந்தனைக் களம் & மேம்பாடு",
+    "titleEn": "TNPSC & Competitive Exams Strategy Webinar",
+    "date": "2026-09-06",
+    "dateFormatted": "செப் 06, ஞாயிறு",
+    "time": "மாலை 07:00 PM – 08:30 PM",
+    "platform": "Google Meet",
+    "platformIcon": "🟢", 
+    "host": " கே. கார்த்திகேயன்",
+    "hostContact": "+91 94867 72206",
+    "description": "Uppiliyar Kalam நம் சிந்தனைக் களம் & மேம்பாடு",
+    "joinLink": "https://meet.google.com/map-srsy-gji",
+    "passcode": "uppiliya2026",
+    "attendees": 84,
+    "createdAt": "2026-08-26T20:00:00.000Z"
+  }
 ]

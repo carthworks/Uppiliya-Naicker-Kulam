@@ -123,16 +123,25 @@ export default function OnlineEventsSection() {
     description: '',
   });
 
-  // Fetch events from API / JSON on mount
+  // Fetch events from API / JSON and merge with localStorage for hosting persistence
   useEffect(() => {
-    fetchEvents();
     try {
+      const cached = localStorage.getItem('uppiliya_events_custom_v1');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEvents(parsed);
+        }
+      }
+
       const savedRsvps = localStorage.getItem('uppiliya_events_rsvp');
       if (savedRsvps) setRsvpState(JSON.parse(savedRsvps));
 
       const isAuthed = sessionStorage.getItem('uppiliya_admin_authed');
       if (isAuthed === 'true') setIsAdminAuthenticated(true);
     } catch {}
+
+    fetchEvents();
   }, []);
 
   const fetchEvents = async () => {
@@ -140,13 +149,34 @@ export default function OnlineEventsSection() {
       const res = await fetch('/api/events');
       if (res.ok) {
         const data = await res.json();
+        let serverEvents = [];
         if (Array.isArray(data)) {
-          setEvents(data);
+          serverEvents = data;
         } else if (data && data.events) {
-          setEvents(data.events);
+          serverEvents = data.events;
           if (data.stats) {
             setVisitorStats(data.stats);
           }
+        }
+
+        // Merge server events with locally cached events
+        let localEvents = [];
+        try {
+          const cached = localStorage.getItem('uppiliya_events_custom_v1');
+          if (cached) localEvents = JSON.parse(cached) || [];
+        } catch {}
+
+        // Combine unique events by ID
+        const eventMap = new Map();
+        serverEvents.forEach((evt) => eventMap.set(evt.id, evt));
+        localEvents.forEach((evt) => eventMap.set(evt.id, evt));
+
+        const merged = Array.from(eventMap.values());
+        if (merged.length > 0) {
+          setEvents(merged);
+          try {
+            localStorage.setItem('uppiliya_events_custom_v1', JSON.stringify(merged));
+          } catch {}
         }
       }
     } catch (e) {
@@ -240,7 +270,11 @@ export default function OnlineEventsSection() {
     const confirmed = window.confirm('நிச்சயமாக இந்த ஆன்லைன் கூட்டத்தை நீக்க விரும்புகிறீர்களா? (Delete this meeting?)');
     if (!confirmed) return;
 
-    setEvents((prev) => prev.filter((e) => e.id !== evtId));
+    const remaining = events.filter((e) => e.id !== evtId);
+    setEvents(remaining);
+    try {
+      localStorage.setItem('uppiliya_events_custom_v1', JSON.stringify(remaining));
+    } catch {}
     showToast('🗑️ கூட்டம் நீக்கப்பட்டது.');
 
     try {
@@ -251,6 +285,17 @@ export default function OnlineEventsSection() {
       });
     } catch (e) {
       console.error('Delete error:', e);
+    }
+  };
+
+  // Copy JSON to Clipboard for Git Hosting
+  const handleCopyEventsJson = () => {
+    try {
+      const jsonStr = JSON.stringify(events, null, 2);
+      navigator.clipboard.writeText(jsonStr);
+      showToast('📋 JSON நகலெடுக்கப்பட்டது! data/events.json-ல் ஒட்டலாம்.');
+    } catch {
+      showToast('📋 data/events.json கோப்பில் புதுப்பிக்கவும்.');
     }
   };
 
@@ -440,7 +485,11 @@ export default function OnlineEventsSection() {
         joinLink: formData.joinLink.trim(),
       };
 
-      setEvents((prev) => prev.map((e) => (e.id === editingEventId ? { ...e, ...updatedEvent } : e)));
+      const updatedList = events.map((e) => (e.id === editingEventId ? { ...e, ...updatedEvent } : e));
+      setEvents(updatedList);
+      try {
+        localStorage.setItem('uppiliya_events_custom_v1', JSON.stringify(updatedList));
+      } catch {}
       setModalOpen(false);
       setEditingEventId(null);
       showToast('✓ கூட்ட விவரங்கள் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!');
@@ -478,6 +527,9 @@ export default function OnlineEventsSection() {
 
       const updatedEvents = [newEvent, ...events];
       setEvents(updatedEvents);
+      try {
+        localStorage.setItem('uppiliya_events_custom_v1', JSON.stringify(updatedEvents));
+      } catch {}
       setModalOpen(false);
       showToast('🎉 புதிய கூட்டம் வெற்றிகரமாக சேர்க்கப்பட்டது!');
 
@@ -619,6 +671,27 @@ export default function OnlineEventsSection() {
           box-shadow: 0 6px 24px rgba(56, 189, 248, 0.5);
           background: #ffffff;
           color: #0284c7;
+        }
+
+        .btn-admin-export-hero {
+          background: rgba(56, 189, 248, 0.12);
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          color: #38bdf8;
+          padding: 0.65rem 1.15rem;
+          border-radius: 10px;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+          font-family: inherit;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          transition: all 0.2s;
+        }
+        .btn-admin-export-hero:hover {
+          background: #38bdf8;
+          color: #0b1120;
+          box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
         }
 
         .btn-admin-logout-hero {
@@ -1439,14 +1512,24 @@ export default function OnlineEventsSection() {
               <span>புதிய கூட்டம் சேர்க்க (Admin)</span>
             </button>
             {isAdminAuthenticated && (
-              <button
-                className="btn-admin-logout-hero"
-                onClick={handleAdminLogout}
-                title="நிர்வாகி அமர்வை முடி (Logout)"
-              >
-                <span>🔒</span>
-                <span>வெளியேறு (Logout)</span>
-              </button>
+              <>
+                <button
+                  className="btn-admin-export-hero"
+                  onClick={handleCopyEventsJson}
+                  title="அனைத்து நிகழ்வுகள் JSON-ஐ கிளிப்போர்டுக்கு நகலெடு (Hosting Backup)"
+                >
+                  <span>📋</span>
+                  <span>JSON நகலெடு (Backup)</span>
+                </button>
+                <button
+                  className="btn-admin-logout-hero"
+                  onClick={handleAdminLogout}
+                  title="நிர்வாகி அமர்வை முடி (Logout)"
+                >
+                  <span>🔒</span>
+                  <span>வெளியேறு (Logout)</span>
+                </button>
+              </>
             )}
           </div>
         </header>
