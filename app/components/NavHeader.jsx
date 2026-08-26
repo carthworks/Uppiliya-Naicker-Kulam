@@ -460,8 +460,8 @@ export default function NavHeader() {
 
       <header className="nav-header">
         {/* Brand */}
-        <Link href="/" className="nav-brand">
-          <span>🏛️</span> Uppiliya.community
+        <Link href="/" className="nav-brand" title="உப்பிலியர் களம் - முகப்பு">
+          <span>🏛️</span> உப்பிலியர் களம்
         </Link>
 
         {/* Right side wrap */}

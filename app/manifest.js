@@ -1,8 +1,8 @@
 export default function manifest() {
   return {
-    name: 'உப்பிலிய நாயக்கர் குல அடையாள தளம் | Uppiliya Naicker Community',
-    short_name: 'உப்பிலியர் குலம்',
-    description: 'உப்பிலிய நாயக்கர் சமூகத்தின் 64 குலங்கள், குலதெய்வக் கோவில்கள், வரலாறு, சிந்தனைகள், ராசி பொருத்தம் மற்றும் ஓரை கணிப்பான்.',
+    name: 'உப்பிலியர் களம் | Uppiliyar Kalam',
+    short_name: 'உப்பிலியர் களம்',
+    description: 'உப்பிலியர் களம் — உப்பிலிய நாயக்கர் சமூகத்தின் 64 குலங்கள், குலதெய்வக் கோவில்கள், வரலாறு, சிந்தனைகள், ராசி பொருத்தம் மற்றும் ஓரை கணிப்பான்.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0f172a',
