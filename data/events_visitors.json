@@ -1,0 +1,12 @@
+{
+  "totalVisits": 1,
+  "uniqueIps": [
+    "::1"
+  ],
+  "recentVisitors": [
+    {
+      "ip": "::1",
+      "timestamp": "2026-08-26T18:17:00.000Z"
+    }
+  ]
+}

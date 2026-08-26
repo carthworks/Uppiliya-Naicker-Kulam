@@ -103,6 +103,12 @@ export default function OnlineEventsSection() {
   const [toastMsg, setToastMsg] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const [visitorStats, setVisitorStats] = useState({
+    totalVisits: 0,
+    uniqueVisits: 0,
+    clientIp: '127.0.0.1',
+  });
+
   // Form State for creating / editing a meeting
   const [formData, setFormData] = useState({
     title: '',
@@ -136,6 +142,11 @@ export default function OnlineEventsSection() {
         const data = await res.json();
         if (Array.isArray(data)) {
           setEvents(data);
+        } else if (data && data.events) {
+          setEvents(data.events);
+          if (data.stats) {
+            setVisitorStats(data.stats);
+          }
         }
       }
     } catch (e) {
@@ -1156,6 +1167,42 @@ export default function OnlineEventsSection() {
           color: #8b949e;
         }
 
+        .visitor-analytics-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.65rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid #30363d;
+          padding: 0.45rem 0.85rem;
+          border-radius: 999px;
+          font-size: 0.76rem;
+          color: #cbd5e1;
+          flex-wrap: wrap;
+        }
+
+        .visitor-pulse-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #38bdf8;
+          box-shadow: 0 0 8px #38bdf8;
+          animation: livePulse 1.6s infinite;
+        }
+
+        .visitor-ip-badge {
+          color: #94a3b8;
+        }
+
+        .visitor-ip-badge code {
+          background: rgba(56, 189, 248, 0.12);
+          color: #38bdf8;
+          padding: 0.15rem 0.45rem;
+          border-radius: 4px;
+          font-size: 0.74rem;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
         .host-meeting-prompt {
           display: flex;
           align-items: center;
@@ -1650,11 +1697,7 @@ export default function OnlineEventsSection() {
           </div>
 
           {/* Window Footer Banner */}
-          <div className="embed-window-footer">
-            <div className="host-meeting-prompt">
-              <span>💡</span>
-              <span>புதிய ஆன்லைன் கூட்டங்களை பதிவு செய்ய நிர்வாகிகளை அணுகவும்.</span>
-            </div>
+          <div className="embed-window-footer" style={{ justifyContent: 'flex-end' }}>
             <button
               className="btn-host-suggest"
               onClick={handleOpenAddMeeting}
