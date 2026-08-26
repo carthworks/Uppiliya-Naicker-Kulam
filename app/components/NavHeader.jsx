@@ -6,9 +6,10 @@ import { usePathname } from 'next/navigation';
 import DesktopIconModal from './DesktopIconModal';
 
 const COMMUNITY_SUBMENU = [
-  { href: '/#kulam-search', icon: '🔍', label: 'குலங்கள் தேடல்', labelEn: 'Kulam Search', desc: 'குலம், குலதெய்வம், பங்காளிகள்' },
-  { href: '/history',       icon: '📜', label: 'வரலாறு',        labelEn: 'History',      desc: 'சமூக மரபு & பண்பாட்டு பின்னணி' },
-  { href: '/thought',       icon: '💡', label: 'சிந்தனைகள்',    labelEn: 'Thought',      desc: '5 முக்கிய லட்சியங்கள் & பார்வை' },
+  { href: '/#kulam-search',  icon: '🔍', label: 'குலங்கள் தேடல்',       labelEn: 'Kulam Search', desc: 'குலம், குலதெய்வம், பங்காளிகள்' },
+  { href: '/#online-events', icon: '🌐', label: 'இணையவழி கூட்டங்கள்', labelEn: 'Online Meets', desc: 'கல்வி, வணிகம் & ஆலோசனை வெபினார்' },
+  { href: '/history',        icon: '📜', label: 'வரலாறு',             labelEn: 'History',      desc: 'சமூக மரபு & பண்பாட்டு பின்னணி' },
+  { href: '/thought',        icon: '💡', label: 'சிந்தனைகள்',         labelEn: 'Thought',      desc: '5 முக்கிய லட்சியங்கள் & பார்வை' },
 ];
 
 const MAIN_NAV_LINKS = [

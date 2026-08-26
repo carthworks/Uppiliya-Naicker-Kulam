@@ -3,22 +3,25 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import communityLogo from '../images/uppliakulam.png';
+import OnlineEventsSection from './components/OnlineEventsSection';
 
 /* ── Ticker ── */
 const TICKER_ITEMS = [
   '🌟 உப்பிலிய நாயக்கர் குல அடையாள தளத்திற்கு வரவேற்கிறோம்!',
+  '🌐 புதியது: இணையவழி கூட்டங்கள் — கல்வி, வணிகம் & சமூக ஆலோசனை வெபினார்கள்',
   '⭐ ராசி பொருத்தம் — உங்கள் திருமண பொருத்தத்தை அறிந்து கொள்ளுங்கள்',
   '🪐 ஓரை கணிப்பு — இன்றைய சுப / அசுப நேரங்களை கண்டறியுங்கள்',
-  '🌙 புதிய: தினசரி ஜோதிடம் — 12 ராசிகளுக்கான ராசிபலன்',
+  '🌙 தினசரி ஜோதிடம் — 12 ராசிகளுக்கான ராசிபலன்',
   '🔍 உங்கள் குலம், குலதெய்வம் மற்றும் பங்காளிகளை இங்கே தேடுங்கள்',
 ];
 
 const FEATURES = [
+  { href:'/#online-events',icon:'🌐', title:'கூட்டங்கள்',    titleEn:'Online Meets',   desc:'கல்வி, வணிகம் & மரபு வெபினார்',     c1:'#38bdf8', c2:'#818cf8', isNew: true },
   { href:'/history',       icon:'📜', title:'வரலாறு',        titleEn:'History',        desc:'சமூக வரலாறு & பண்பாடு',              c1:'#f59e0b', c2:'#f97316' },
   { href:'/thought',       icon:'💡', title:'சிந்தனைகள்',    titleEn:'Thoughts',       desc:'5 முக்கிய லட்சியங்கள்',              c1:'#fbbf24', c2:'#f59e0b' },
   { href:'/rasi-porutham', icon:'✨', title:'ராசி பொருத்தம்',titleEn:'Rasi Matching',  desc:'திருமண பொருத்தம் காணல்',             c1:'#c084fc', c2:'#60a5fa' },
   { href:'/horai',         icon:'🪐', title:'ஓரை',           titleEn:'Horai',          desc:'கிரக ஓரைகள் & ராகு காலம்',           c1:'#a855f7', c2:'#ec4899' },
-  { href:'/jothidam',      icon:'🌙', title:'ஜோதிடம்',       titleEn:'Horoscope',      desc:'தினசரி ராசிபலன் · வாரம் · மாதம்',    c1:'#c084fc', c2:'#38bdf8', isNew: true },
+  { href:'/jothidam',      icon:'🌙', title:'ஜோதிடம்',       titleEn:'Horoscope',      desc:'தினசரி ராசிபலன் · வாரம் · மாதம்',    c1:'#c084fc', c2:'#38bdf8' },
 ];
 
 function NewsTicker({ dark }) {
@@ -583,6 +586,9 @@ export default function Home() {
           </div>
 
         </div>
+
+        {/* ── Online Meetings & Events Section ── */}
+        <OnlineEventsSection />
       </div>
     </>
   );
