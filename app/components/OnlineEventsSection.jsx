@@ -54,9 +54,47 @@ function formatTamilDate(dateStr) {
   }
 }
 
+function formatSingleTime(time24) {
+  if (!time24) return { periodTamil: 'மாலை', formatted: '07:00 PM', full: 'மாலை 07:00 PM' };
+  const parts = time24.split(':');
+  let hours = parseInt(parts[0], 10);
+  if (isNaN(hours)) hours = 19;
+  const minutes = parts[1] ? parts[1].slice(0, 2) : '00';
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  let periodTamil = 'காலை';
+  if (hours >= 12 && hours < 16) periodTamil = 'பிற்பகல்';
+  else if (hours >= 16 && hours < 20) periodTamil = 'மாலை';
+  else if (hours >= 20 || hours < 4) periodTamil = 'இரவு';
+  const displayHours = hours % 12 || 12;
+  const formatted = `${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`;
+  return {
+    periodTamil,
+    formatted,
+    full: `${periodTamil} ${formatted}`,
+  };
+}
+
+function formatTamilTimeRange(startTime24, endTime24) {
+  if (!startTime24) return 'மாலை 07:00 PM';
+  const start = formatSingleTime(startTime24);
+  if (!endTime24) return start.full;
+  const end = formatSingleTime(endTime24);
+  return `${start.periodTamil} ${start.formatted} – ${end.formatted}`;
+}
+
 function formatTamilTime(timeStr) {
   if (!timeStr) return '';
-  // Parse standard ISO datetime like createdAt (e.g. "2026-02-09T19:00:00.000Z")
+  // If already formatted Tamil string (e.g. "மாலை 04:00 PM – 05:30 PM"), return as is
+  if (
+    timeStr.includes('மாலை') ||
+    timeStr.includes('காலை') ||
+    timeStr.includes('பிற்பகல்') ||
+    timeStr.includes('இரவு')
+  ) {
+    return timeStr;
+  }
+
+  // Parse standard ISO datetime like createdAt
   if (timeStr.includes('T') || (timeStr.includes('-') && !isNaN(Date.parse(timeStr)))) {
     const d = new Date(timeStr);
     if (!isNaN(d.getTime())) {
@@ -89,6 +127,79 @@ function formatTamilTime(timeStr) {
   return timeStr;
 }
 
+function getEventCountdown(evt, nowMs = Date.now()) {
+  if (!evt || !evt.date) return null;
+  try {
+    let hours = 19; // default 7 PM
+    let minutes = 0;
+
+    if (evt.time) {
+      if (evt.time.includes('T')) {
+        const d = new Date(evt.time);
+        if (!isNaN(d.getTime())) return computeTimeDiff(d.getTime(), nowMs);
+      }
+      const match12 = evt.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (match12) {
+        hours = parseInt(match12[1], 10);
+        minutes = parseInt(match12[2], 10);
+        const isPM = match12[3].toUpperCase() === 'PM';
+        if (isPM && hours < 12) hours += 12;
+        if (!isPM && hours === 12) hours = 0;
+      } else {
+        const match24 = evt.time.match(/(\d{1,2}):(\d{2})/);
+        if (match24) {
+          hours = parseInt(match24[1], 10);
+          minutes = parseInt(match24[2], 10);
+        }
+      }
+    }
+
+    const eventStartDate = new Date(
+      `${evt.date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
+    );
+    if (isNaN(eventStartDate.getTime())) return null;
+
+    return computeTimeDiff(eventStartDate.getTime(), nowMs);
+  } catch {
+    return null;
+  }
+}
+
+function computeTimeDiff(targetMs, nowMs) {
+  const diffMs = targetMs - nowMs;
+
+  // If within 2 hours after start: Live Now
+  if (diffMs <= 0 && diffMs >= -2 * 60 * 60 * 1000) {
+    return { status: 'live', label: '🔴 இப்போது நேரலையில் நடக்கிறது! (Live Now)' };
+  }
+  if (diffMs < -2 * 60 * 60 * 1000) {
+    return { status: 'ended', label: '✓ கூட்டம் நிறைவடைந்தது' };
+  }
+
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+  let label = '';
+  if (days > 0) {
+    label = `${days} நாள் ${hours} மணி ${minutes} நிமி`;
+  } else if (hours > 0) {
+    label = `${hours} மணி ${minutes} நிமி ${seconds} விநாடி`;
+  } else {
+    label = `${minutes} நிமி ${seconds} விநாடி`;
+  }
+
+  return {
+    status: 'upcoming',
+    days,
+    hours,
+    minutes,
+    seconds,
+    label: `⏱️ இன்னும்: ${label}`,
+  };
+}
+
 export default function OnlineEventsSection() {
   const [events, setEvents] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -102,6 +213,15 @@ export default function OnlineEventsSection() {
   const [adminPasswordError, setAdminPasswordError] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [loading, setLoading] = useState(true);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  // Update live clock every second for countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const [visitorStats, setVisitorStats] = useState({
     totalVisits: 0,
@@ -109,13 +229,31 @@ export default function OnlineEventsSection() {
     clientIp: '127.0.0.1',
   });
 
+  // Attendee Registration Modal State
+  const [attendeeRegisterModalOpen, setAttendeeRegisterModalOpen] = useState(false);
+  const [registeringEvent, setRegisteringEvent] = useState(null);
+  const [attendeeForm, setAttendeeForm] = useState({
+    name: '',
+    phone: '',
+    place: '',
+  });
+  const [isSubmittingAttendee, setIsSubmittingAttendee] = useState(false);
+
+  // Admin Attendee List Modal State
+  const [attendeeListModalOpen, setAttendeeListModalOpen] = useState(false);
+  const [selectedEventForList, setSelectedEventForList] = useState(null);
+  const [attendeesList, setAttendeesList] = useState([]);
+  const [attendeesLoading, setAttendeesLoading] = useState(false);
+  const [attendeeSearchQuery, setAttendeeSearchQuery] = useState('');
+
   // Form State for creating / editing a meeting
   const [formData, setFormData] = useState({
     title: '',
     titleEn: '',
     category: 'career',
     date: '',
-    time: '19:00',
+    time: '16:00',
+    endTime: '17:30',
     platform: 'Google Meet',
     joinLink: '',
     host: '',
@@ -136,6 +274,18 @@ export default function OnlineEventsSection() {
 
       const savedRsvps = localStorage.getItem('uppiliya_events_rsvp');
       if (savedRsvps) setRsvpState(JSON.parse(savedRsvps));
+
+      const savedProfile = localStorage.getItem('uppiliya_attendee_profile');
+      if (savedProfile) {
+        const p = JSON.parse(savedProfile);
+        if (p && typeof p === 'object') {
+          setAttendeeForm({
+            name: p.name || '',
+            phone: p.phone || '',
+            place: p.place || '',
+          });
+        }
+      }
 
       const isAuthed = sessionStorage.getItem('uppiliya_admin_authed');
       if (isAuthed === 'true') setIsAdminAuthenticated(true);
@@ -207,7 +357,8 @@ export default function OnlineEventsSection() {
       titleEn: '',
       category: 'career',
       date: '',
-      time: '19:00',
+      time: '16:00',
+      endTime: '17:30',
       platform: 'Google Meet',
       joinLink: '',
       host: '',
@@ -215,6 +366,40 @@ export default function OnlineEventsSection() {
       description: '',
     });
     setModalOpen(true);
+  };
+
+  const extractTimesFromEvent = (evt) => {
+    let startTime = evt.startTime || '16:00';
+    let endTime = evt.endTime || '';
+
+    if (!evt.startTime && evt.time) {
+      if (evt.time.includes('T')) {
+        const d = new Date(evt.time);
+        if (!isNaN(d.getTime())) {
+          const h = String(d.getHours()).padStart(2, '0');
+          const m = String(d.getMinutes()).padStart(2, '0');
+          startTime = `${h}:${m}`;
+        }
+      } else {
+        const matches = [...evt.time.matchAll(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi)];
+        if (matches.length > 0) {
+          const to24 = (m) => {
+            let h = parseInt(m[1], 10);
+            const min = m[2];
+            const ampm = m[3] ? m[3].toUpperCase() : '';
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return `${String(h).padStart(2, '0')}:${min}`;
+          };
+          startTime = to24(matches[0]);
+          if (matches.length > 1) {
+            endTime = to24(matches[1]);
+          }
+        }
+      }
+    }
+
+    return { startTime, endTime };
   };
 
   // Open Edit Meeting flow
@@ -227,19 +412,7 @@ export default function OnlineEventsSection() {
       return;
     }
 
-    let extractedTime = '19:00';
-    if (evt.time) {
-      if (evt.time.includes('T')) {
-        const d = new Date(evt.time);
-        if (!isNaN(d.getTime())) {
-          const h = String(d.getHours()).padStart(2, '0');
-          const m = String(d.getMinutes()).padStart(2, '0');
-          extractedTime = `${h}:${m}`;
-        }
-      } else if (/^\d{1,2}:\d{2}/.test(evt.time)) {
-        extractedTime = evt.time.slice(0, 5);
-      }
-    }
+    const { startTime, endTime } = extractTimesFromEvent(evt);
 
     setEditingEventId(evt.id);
     setFormData({
@@ -247,7 +420,8 @@ export default function OnlineEventsSection() {
       titleEn: evt.titleEn || '',
       category: evt.category || 'career',
       date: evt.date || '',
-      time: extractedTime,
+      time: startTime,
+      endTime: endTime,
       platform: evt.platform || 'Google Meet',
       joinLink: evt.joinLink || '',
       host: evt.host || '',
@@ -308,6 +482,29 @@ export default function OnlineEventsSection() {
     showToast('🔒 நிர்வாகி அமர்வு முடிந்தது (Logged out)');
   };
 
+  const fetchAttendeesForEvent = async (evt) => {
+    if (!evt) return;
+    setSelectedEventForList(evt);
+    setAttendeesLoading(true);
+    setAttendeeListModalOpen(true);
+    try {
+      const res = await fetch(`/api/events?attendeesFor=${evt.id}&passcode=${ADMIN_STATIC_PASSCODE}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.attendees)) {
+          setAttendeesList(data.attendees);
+        } else {
+          setAttendeesList([]);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch attendees:', e);
+      setAttendeesList([]);
+    } finally {
+      setAttendeesLoading(false);
+    }
+  };
+
   // Verify Admin Static Password
   const handleAdminAuthSubmit = (e) => {
     e.preventDefault();
@@ -328,7 +525,8 @@ export default function OnlineEventsSection() {
             titleEn: '',
             category: 'career',
             date: '',
-            time: '19:00',
+            time: '16:00',
+            endTime: '17:30',
             platform: 'Google Meet',
             joinLink: '',
             host: '',
@@ -338,26 +536,16 @@ export default function OnlineEventsSection() {
           setModalOpen(true);
         } else if (pendingAdminAction.type === 'edit' && pendingAdminAction.evt) {
           const evt = pendingAdminAction.evt;
-          let extractedTime = '19:00';
-          if (evt.time) {
-            if (evt.time.includes('T')) {
-              const d = new Date(evt.time);
-              if (!isNaN(d.getTime())) {
-                const h = String(d.getHours()).padStart(2, '0');
-                const m = String(d.getMinutes()).padStart(2, '0');
-                extractedTime = `${h}:${m}`;
-              }
-            } else if (/^\d{1,2}:\d{2}/.test(evt.time)) {
-              extractedTime = evt.time.slice(0, 5);
-            }
-          }
+          const { startTime, endTime } = extractTimesFromEvent(evt);
+
           setEditingEventId(evt.id);
           setFormData({
             title: evt.title || '',
             titleEn: evt.titleEn || '',
             category: evt.category || 'career',
             date: evt.date || '',
-            time: extractedTime,
+            time: startTime,
+            endTime: endTime,
             platform: evt.platform || 'Google Meet',
             joinLink: evt.joinLink || '',
             host: evt.host || '',
@@ -367,6 +555,8 @@ export default function OnlineEventsSection() {
           setModalOpen(true);
         } else if (pendingAdminAction.type === 'delete' && pendingAdminAction.evtId) {
           handleDeleteMeeting(pendingAdminAction.evtId);
+        } else if (pendingAdminAction.type === 'view_attendees' && pendingAdminAction.evt) {
+          fetchAttendeesForEvent(pendingAdminAction.evt);
         }
         setPendingAdminAction(null);
       } else {
@@ -375,6 +565,178 @@ export default function OnlineEventsSection() {
     } else {
       setAdminPasswordError(true);
     }
+  };
+
+  // Open Attendee Registration Modal
+  const handleOpenRegister = (evt) => {
+    setRegisteringEvent(evt);
+    setAttendeeRegisterModalOpen(true);
+  };
+
+  // Submit Attendee Registration
+  const handleSubmitAttendeeRegister = async (e) => {
+    e.preventDefault();
+    const cleanName = (attendeeForm.name || '').trim();
+    const cleanPhoneDigits = (attendeeForm.phone || '').replace(/\D/g, '');
+    let validPhone = cleanPhoneDigits;
+    if (cleanPhoneDigits.length === 12 && cleanPhoneDigits.startsWith('91')) {
+      validPhone = cleanPhoneDigits.slice(2);
+    } else if (cleanPhoneDigits.length === 11 && cleanPhoneDigits.startsWith('0')) {
+      validPhone = cleanPhoneDigits.slice(1);
+    }
+
+    if (cleanName.length < 2) {
+      alert('தயவுசெய்து சரியான பெயரை உள்ளிடவும் (குறைந்தது 2 எழுத்துக்கள்).');
+      return;
+    }
+
+    if (validPhone.length !== 10 || !/^[6-9]\d{9}$/.test(validPhone) || /^(\d)\1{9}$/.test(validPhone)) {
+      alert('தயவுசெய்து சரியான 10 இலக்க இந்திய கைபேசி எண்ணை உள்ளிடவும் (எ.கா: 9876543210).');
+      return;
+    }
+
+    setIsSubmittingAttendee(true);
+    try {
+      // Save profile locally for future convenience
+      try {
+        localStorage.setItem('uppiliya_attendee_profile', JSON.stringify({ ...attendeeForm, phone: validPhone }));
+      } catch {}
+
+      // Call API
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register_attendee',
+          eventId: registeringEvent.id,
+          attendee: {
+            name: cleanName,
+            phone: validPhone,
+            place: (attendeeForm.place || '').trim(),
+            hp_company: attendeeForm.hp_company || '',
+          },
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Update RSVP local state
+        setRsvpState((prev) => {
+          const next = { ...prev, [registeringEvent.id]: true };
+          try {
+            localStorage.setItem('uppiliya_events_rsvp', JSON.stringify(next));
+          } catch {}
+          return next;
+        });
+
+        // Update local events count
+        if (data.events) {
+          setEvents(data.events);
+        } else {
+          setEvents((prev) =>
+            prev.map((evt) =>
+              evt.id === registeringEvent.id
+                ? { ...evt, attendees: (evt.attendees || 0) + 1 }
+                : evt
+            )
+          );
+        }
+
+        showToast('✓ உங்கள் பதிவு வெற்றிகரமாக உறுதியானது!');
+        setAttendeeRegisterModalOpen(false);
+
+        // Auto redirect or prompt user to join Google Meet directly
+        if (registeringEvent.joinLink) {
+          const cleanUrl = registeringEvent.joinLink.startsWith('http')
+            ? registeringEvent.joinLink
+            : `https://${registeringEvent.joinLink}`;
+          window.open(cleanUrl, '_blank');
+        }
+      } else {
+        alert(data.error || 'பதிவு செய்வதில் பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      alert('இணைப்பில் சிக்கல். மீண்டும் முயற்சிக்கவும்.');
+    } finally {
+      setIsSubmittingAttendee(false);
+    }
+  };
+
+  // Delete spam attendee entry (Admin only)
+  const handleDeleteAttendee = async (attendeeId) => {
+    if (!selectedEventForList || !attendeeId) return;
+    const ok = window.confirm('இந்த தவறான/ஸ்பேம் பதிவை நிச்சயமாக நீக்க விரும்புகிறீர்களா?');
+    if (!ok) return;
+
+    try {
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_attendee',
+          eventId: selectedEventForList.id,
+          attendeeId,
+          passcode: ADMIN_STATIC_PASSCODE,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setAttendeesList(data.attendees || []);
+          if (data.events) {
+            setEvents(data.events);
+            try {
+              localStorage.setItem('uppiliya_events_custom_v1', JSON.stringify(data.events));
+            } catch {}
+          }
+          showToast('🗑️ பதிவு நீக்கப்பட்டது!');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete attendee:', err);
+    }
+  };
+
+  // Open Attendee List (Admin restricted)
+  const handleOpenAttendeeList = (evt) => {
+    if (isAdminAuthenticated) {
+      fetchAttendeesForEvent(evt);
+    } else {
+      setPendingAdminAction({ type: 'view_attendees', evt });
+      setAdminPasswordInput('');
+      setAdminPasswordError(false);
+      setAdminAuthModalOpen(true);
+    }
+  };
+
+  // Export Attendees to CSV (with UTF-8 BOM for Tamil compatibility in Excel)
+  const handleExportAttendeesCsv = () => {
+    if (!selectedEventForList || !attendeesList.length) {
+      showToast('⚠️ ஏற்றுமதி செய்ய பதிவுகள் இல்லை');
+      return;
+    }
+
+    const headers = ['வ.எண் (S.No)', 'பெயர் (Name)', 'ஊர் / மாவட்டம் (Place)', 'தொலைபேசி / வாட்ஸ்அப் (Phone)', 'பதிவு செய்த நேரம் (Registered Time)'];
+    const rows = attendeesList.map((att, idx) => [
+      idx + 1,
+      `"${(att.name || '').replace(/"/g, '""')}"`,
+      `"${(att.place || '').replace(/"/g, '""')}"`,
+      `"${(att.phone || '').replace(/"/g, '""')}"`,
+      `"${att.registeredAt ? new Date(att.registeredAt).toLocaleString('ta-IN') : ''}"`,
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    const safeTitle = (selectedEventForList.title || 'நிகழ்வு').replace(/[^a-zA-Z0-9\u0B80-\u0BFF]/g, '_').slice(0, 30);
+    link.setAttribute('download', `உப்பிலியர்_களம்_${safeTitle}_பங்கேற்பாளர்கள்.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('📥 CSV பட்டியல் பதிவிறக்கம் செய்யப்பட்டது!');
   };
 
   // Direct 1-Click Meeting Join (No password needed)
@@ -454,16 +816,8 @@ export default function OnlineEventsSection() {
     else if (pLower.includes('whatsapp')) platformIcon = '🟢';
     else if (pLower.includes('team') || pLower.includes('webex') || pLower.includes('jio')) platformIcon = '🟣';
 
-    let isoTime = new Date().toISOString();
-    if (formData.date && formData.time) {
-      try {
-        const timeVal = formData.time.includes('T') ? formData.time : `${formData.date}T${formData.time.length === 5 ? formData.time + ':00' : formData.time}`;
-        const d = new Date(timeVal);
-        if (!isNaN(d.getTime())) {
-          isoTime = d.toISOString();
-        }
-      } catch {}
-    }
+    const formattedTamilDate = formatTamilDate(formData.date);
+    const formattedTamilTime = formatTamilTimeRange(formData.time, formData.endTime);
 
     if (editingEventId) {
       // UPDATE EXISTING EVENT
@@ -475,8 +829,10 @@ export default function OnlineEventsSection() {
         title: formData.title.trim(),
         titleEn: formData.titleEn.trim() || 'Community Online Meetup',
         date: formData.date,
-        dateFormatted: formatTamilDate(isoTime),
-        time: isoTime,
+        dateFormatted: formattedTamilDate,
+        time: formattedTamilTime,
+        startTime: formData.time,
+        endTime: formData.endTime || '',
         platform: formData.platform.trim() || 'Online Meet',
         platformIcon: platformIcon,
         host: formData.host.trim(),
@@ -513,8 +869,10 @@ export default function OnlineEventsSection() {
         title: formData.title.trim(),
         titleEn: formData.titleEn.trim() || 'Community Online Meetup',
         date: formData.date,
-        dateFormatted: formatTamilDate(isoTime),
-        time: isoTime,
+        dateFormatted: formattedTamilDate,
+        time: formattedTamilTime,
+        startTime: formData.time,
+        endTime: formData.endTime || '',
         platform: formData.platform.trim() || 'Online Meet',
         platformIcon: platformIcon,
         host: formData.host.trim(),
@@ -549,7 +907,8 @@ export default function OnlineEventsSection() {
       titleEn: '',
       category: 'career',
       date: '',
-      time: '19:00',
+      time: '16:00',
+      endTime: '17:30',
       platform: 'Google Meet',
       joinLink: '',
       host: '',
@@ -1094,9 +1453,10 @@ export default function OnlineEventsSection() {
           margin-top: 0.6rem;
           padding-top: 0.45rem;
           border-top: 1px dashed #30363d;
+          flex-wrap: wrap;
         }
 
-        .btn-admin-edit, .btn-admin-delete {
+        .btn-admin-edit, .btn-admin-delete, .btn-admin-attendees {
           background: rgba(255, 255, 255, 0.03);
           border: 1px solid #30363d;
           font-size: 0.72rem;
@@ -1125,6 +1485,16 @@ export default function OnlineEventsSection() {
         .btn-admin-delete:hover {
           background: rgba(248, 113, 113, 0.15);
           border-color: #f87171;
+        }
+        .btn-admin-attendees {
+          color: #a855f7;
+          border-color: rgba(168, 85, 247, 0.35);
+          background: rgba(168, 85, 247, 0.08);
+        }
+        .btn-admin-attendees:hover {
+          background: rgba(168, 85, 247, 0.2);
+          border-color: #a855f7;
+          color: #d8b4fe;
         }
 
         /* Actions Column */
@@ -1483,6 +1853,235 @@ export default function OnlineEventsSection() {
           from { opacity: 0; transform: translate(-50%, 15px); }
           to { opacity: 1; transform: translate(-50%, 0); }
         }
+        /* Attendee List Modal & Table */
+        .attendees-modal-card {
+          max-width: 680px;
+          width: 95%;
+        }
+
+        .attendees-toolbar {
+          display: flex;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .attendee-search-input {
+          flex: 1;
+          min-width: 200px;
+          background: #0d1117;
+          border: 1px solid #30363d;
+          border-radius: 8px;
+          padding: 0.55rem 0.85rem;
+          color: #f0f6fc;
+          font-size: 0.84rem;
+          font-family: inherit;
+        }
+        .attendee-search-input:focus {
+          border-color: #a855f7;
+          box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+          outline: none;
+        }
+
+        .btn-export-csv {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: #ffffff;
+          border: none;
+          padding: 0.55rem 0.95rem;
+          border-radius: 8px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          font-family: inherit;
+          transition: all 0.2s;
+          white-space: nowrap;
+        }
+        .btn-export-csv:hover {
+          background: linear-gradient(135deg, #34d399, #10b981);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .attendees-table-wrap {
+          border: 1px solid #30363d;
+          border-radius: 10px;
+          overflow-x: auto;
+          background: #0d1117;
+          max-height: 420px;
+          overflow-y: auto;
+        }
+
+        .attendees-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+          font-size: 0.82rem;
+        }
+
+        .attendees-table th {
+          background: #161b22;
+          color: #cbd5e1;
+          padding: 0.7rem 0.85rem;
+          border-bottom: 1px solid #30363d;
+          font-weight: 700;
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
+
+        .attendees-table td {
+          padding: 0.65rem 0.85rem;
+          border-bottom: 1px solid #21262d;
+          color: #e2e8f0;
+        }
+
+        .attendees-table tr:hover td {
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .attendee-wa-link {
+          color: #25D366;
+          text-decoration: none;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+        .attendee-wa-link:hover {
+          text-decoration: underline;
+        }
+
+        .attendee-count-badge {
+          background: rgba(168, 85, 247, 0.15);
+          color: #d8b4fe;
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          padding: 0.2rem 0.6rem;
+          border-radius: 999px;
+          font-size: 0.76rem;
+          font-weight: 700;
+        }
+
+        /* Live Countdown Badge */
+        .countdown-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          padding: 0.2rem 0.65rem;
+          border-radius: 999px;
+          font-size: 0.74rem;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+        }
+
+        .countdown-badge.upcoming {
+          background: rgba(56, 189, 248, 0.12);
+          color: #38bdf8;
+          border: 1px solid rgba(56, 189, 248, 0.35);
+          box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+        }
+
+        .countdown-badge.live {
+          background: rgba(239, 68, 68, 0.18);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.45);
+          animation: liveGlow 1.4s infinite;
+        }
+
+        @keyframes liveGlow {
+          0% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); }
+          50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.8); }
+          100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.4); }
+        }
+
+        .countdown-badge.ended {
+          background: rgba(255, 255, 255, 0.04);
+          color: #8b949e;
+          border: 1px solid #30363d;
+        }
+
+        /* WhatsApp Community & Reminder Banner */
+        .events-whatsapp-banner {
+          background: linear-gradient(135deg, rgba(37, 211, 102, 0.12), rgba(18, 140, 126, 0.06));
+          border: 1px solid rgba(37, 211, 102, 0.3);
+          border-radius: 14px;
+          padding: 1.15rem 1.4rem;
+          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1.25rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (max-width: 768px) {
+          .events-whatsapp-banner {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.9rem;
+          }
+        }
+
+        .whatsapp-banner-left {
+          display: flex;
+          align-items: center;
+          gap: 0.9rem;
+        }
+
+        .whatsapp-banner-icon {
+          font-size: 2rem;
+          background: rgba(37, 211, 102, 0.15);
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .whatsapp-banner-title {
+          font-size: 0.98rem;
+          font-weight: 800;
+          color: #25D366;
+          margin-bottom: 0.2rem;
+        }
+
+        .whatsapp-banner-desc {
+          font-size: 0.8rem;
+          color: #cbd5e1;
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        .btn-whatsapp-group {
+          background: linear-gradient(135deg, #25D366, #128C7E);
+          color: #ffffff;
+          border: none;
+          padding: 0.65rem 1.2rem;
+          border-radius: 999px;
+          font-size: 0.84rem;
+          font-weight: 800;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          transition: all 0.2s;
+          white-space: nowrap;
+          box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+          font-family: inherit;
+        }
+
+        .btn-whatsapp-group:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+          background: linear-gradient(135deg, #2ae771, #16a085);
+          color: #ffffff;
+        }
       `}</style>
 
       <div className="events-ambient-glow" />
@@ -1559,6 +2158,31 @@ export default function OnlineEventsSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── WhatsApp Community Reminder Banner ── */}
+        <div className="events-whatsapp-banner">
+          <div className="whatsapp-banner-left">
+            <div className="whatsapp-banner-icon">💬</div>
+            <div>
+              <div className="whatsapp-banner-title">
+                நம்ம களம் | உறவுகள் · தகவல்கள் · இணைப்பு (WhatsApp Group)
+              </div>
+              <p className="whatsapp-banner-desc">
+                கூட்டம் தொடங்குவதற்கு 15 நிமிடங்களுக்கு முன்பாக Google Meet இணைப்பு மற்றும் முக்கிய தகவல்களை வாட்ஸ்அப்பில் உடனுக்குடன் பெற <strong>"நம்ம களம்"</strong> வாட்ஸ்அப் குழுவில் இணையுங்கள்!
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://chat.whatsapp.com/CY7JIN54mCx6w4UmvSo5xD"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-whatsapp-group"
+            title="நம்ம களம் WhatsApp குழுவில் நேரடியாக இணையுங்கள்"
+          >
+            <span>💬 "நம்ம களம்" குழுவில் இணைக</span>
+            <span>➔</span>
+          </a>
         </div>
 
         {/* ── Main Embed App Window Container ── */}
@@ -1655,6 +2279,7 @@ export default function OnlineEventsSection() {
             ) : (
               filteredEvents.map((evt) => {
                 const isRegistered = !!rsvpState[evt.id];
+                const countdown = getEventCountdown(evt, nowMs);
                 const cleanUrl = evt.joinLink && evt.joinLink.startsWith('http')
                   ? evt.joinLink
                   : `https://${evt.joinLink || 'meet.google.com'}`;
@@ -1689,6 +2314,13 @@ export default function OnlineEventsSection() {
                         <span className="feed-attendees">
                           👥 {evt.attendees || 1} பேர் பதிவு
                         </span>
+
+                        {/* Live Countdown Badge */}
+                        {countdown && (
+                          <span className={`countdown-badge ${countdown.status}`}>
+                            {countdown.label}
+                          </span>
+                        )}
                       </div>
 
                       <h3 className="feed-event-title">{evt.title}</h3>
@@ -1703,8 +2335,16 @@ export default function OnlineEventsSection() {
                         )}
                       </div>
 
-                      {/* Admin Controls (Edit / Delete) */}
+                      {/* Admin Controls (Edit / Delete / View Attendees) */}
                       <div className="admin-item-controls">
+                        <button
+                          className="btn-admin-attendees"
+                          onClick={() => handleOpenAttendeeList(evt)}
+                          title="நிர்வாகி: பதிவு செய்த பங்கேற்பாளர்கள் பட்டியல்"
+                        >
+                          <span>👥</span>
+                          <span>பங்கேற்பாளர்கள் ({evt.attendees || 0})</span>
+                        </button>
                         <button
                           className="btn-admin-edit"
                           onClick={() => handleOpenEditMeeting(evt)}
@@ -1724,7 +2364,7 @@ export default function OnlineEventsSection() {
                       </div>
                     </div>
 
-                    {/* Actions Column (Direct Join without password) */}
+                    {/* Actions Column (Direct Join & Registration) */}
                     <div className="feed-action-col">
                       <button
                         className="btn-join-meet"
@@ -1735,12 +2375,13 @@ export default function OnlineEventsSection() {
                         <span>➔</span>
                       </button>
 
-                      {/* RSVP toggle */}
+                      {/* Registration / RSVP Modal Trigger */}
                       <button
                         className={`btn-rsvp ${isRegistered ? 'registered' : ''}`}
-                        onClick={() => handleRsvpToggle(evt.id)}
+                        onClick={() => handleOpenRegister(evt)}
+                        title="பெயர், ஊர் மற்றும் தொலைபேசி எண் பதிவு செய்ய"
                       >
-                        <span>{isRegistered ? '✓ பதிவு உறுதியானது' : '👍 நான் கலந்து கொள்கிறேன்'}</span>
+                        <span>{isRegistered ? '✓ பதிவு உறுதியானது (திருத்து)' : '📝 பெயர் & ஊர் பதிவு செய்க'}</span>
                       </button>
 
                       {/* Secondary buttons */}
@@ -1996,9 +2637,9 @@ export default function OnlineEventsSection() {
                   />
                 </div>
 
-                {/* Time */}
+                {/* Start Time */}
                 <div className="form-group">
-                  <label className="form-label">நேரம் (Time) *</label>
+                  <label className="form-label">தொடங்கும் நேரம் (Start Time) *</label>
                   <input
                     type="time"
                     required
@@ -2011,6 +2652,44 @@ export default function OnlineEventsSection() {
                     }}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                   />
+                </div>
+
+                {/* End Time */}
+                <div className="form-group">
+                  <label className="form-label">முடிவடையும் நேரம் (End Time - விருப்பத்தேர்வு)</label>
+                  <input
+                    type="time"
+                    className="form-input"
+                    value={formData.endTime}
+                    onClick={(e) => {
+                      if (e.target && typeof e.target.showPicker === 'function') {
+                        try { e.target.showPicker(); } catch {}
+                      }
+                    }}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  />
+                </div>
+
+                {/* Live Tamil Date/Time Sync Preview */}
+                <div className="form-group full-width" style={{ margin: '0.2rem 0 0.8rem' }}>
+                  <div
+                    style={{
+                      background: 'rgba(56, 189, 248, 0.08)',
+                      border: '1px dashed rgba(56, 189, 248, 0.35)',
+                      borderRadius: '10px',
+                      padding: '0.65rem 0.95rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.25rem',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
+                      ⚡ நேரலை தமிழ் முன்னோட்டம் (Live Sync Preview):
+                    </div>
+                    <div style={{ fontSize: '0.88rem', color: '#38bdf8', fontWeight: 800 }}>
+                      📅 {formatTamilDate(formData.date)} &nbsp;·&nbsp; ⏰ {formatTamilTimeRange(formData.time, formData.endTime)}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Direct Meeting URL */}
@@ -2085,6 +2764,327 @@ export default function OnlineEventsSection() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ATTENDEE REGISTRATION MODAL ── */}
+      {attendeeRegisterModalOpen && registeringEvent && (
+        <div
+          className="event-modal-overlay"
+          onClick={() => setAttendeeRegisterModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="event-modal-card"
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="event-modal-close"
+              onClick={() => setAttendeeRegisterModalOpen(false)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <div style={{ fontSize: '2rem', marginBottom: '0.4rem' }}>📝</div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#38bdf8', marginBottom: '0.25rem' }}>
+              நிகழ்வில் பங்கேற்க பதிவு செய்க
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.2rem' }}>
+              <strong>{registeringEvent.title}</strong> — உங்கள் விவரங்களைப் பதிவு செய்து நேரடியாக கூட்டத்தில் இணையுங்கள்.
+            </p>
+
+            <form onSubmit={handleSubmitAttendeeRegister}>
+              {/* Honeypot field to trap automated bots */}
+              <input
+                type="text"
+                name="hp_company"
+                value={attendeeForm.hp_company || ''}
+                onChange={(e) => setAttendeeForm({ ...attendeeForm, hp_company: e.target.value })}
+                style={{ display: 'none', position: 'absolute', left: '-9999px', opacity: 0 }}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+
+              <div className="form-group full-width">
+                <label className="form-label">உங்கள் பெயர் (Full Name) *</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  minLength={2}
+                  maxLength={50}
+                  className="form-input"
+                  placeholder="எ.கா: மு. கார்த்திக்"
+                  value={attendeeForm.name}
+                  onChange={(e) => setAttendeeForm({ ...attendeeForm, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label className="form-label">வாட்ஸ்அப் / தொடர்பு எண் (WhatsApp No - 10 Digits) *</label>
+                <input
+                  type="tel"
+                  required
+                  minLength={10}
+                  maxLength={14}
+                  className="form-input"
+                  placeholder="எ.கா: 98765 43210 அல்லது +91 98765 43210"
+                  value={attendeeForm.phone}
+                  onChange={(e) => setAttendeeForm({ ...attendeeForm, phone: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group full-width">
+                <label className="form-label">ஊர் / மாவட்டம் (Native Place / District) *</label>
+                <input
+                  type="text"
+                  required
+                  minLength={2}
+                  maxLength={50}
+                  className="form-input"
+                  placeholder="எ.கா: உடுமலைப்பேட்டை / திருப்பூர்"
+                  value={attendeeForm.place}
+                  onChange={(e) => setAttendeeForm({ ...attendeeForm, place: e.target.value })}
+                />
+              </div>
+
+              <div
+                style={{
+                  background: 'rgba(37, 211, 102, 0.08)',
+                  border: '1px solid rgba(37, 211, 102, 0.25)',
+                  borderRadius: '10px',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.78rem',
+                  color: '#94a3b8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  margin: '0.5rem 0 1rem',
+                }}
+              >
+                <span style={{ fontSize: '1.25rem' }}>💬</span>
+                <div>
+                  <span style={{ color: '#e2e8f0', fontWeight: 600 }}>வாட்ஸ்அப் நினைவூட்டல்:</span>{' '}
+                  கூட்டத்திற்கு 15 நிமிடம் முன் லிங்க் பெற எங்கள்{' '}
+                  <a
+                    href="https://chat.whatsapp.com/CY7JIN54mCx6w4UmvSo5xD"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#25D366', fontWeight: 700, textDecoration: 'underline' }}
+                  >
+                    "நம்ம களம்" வாட்ஸ்அப் குழுவிலும்
+                  </a>{' '}
+                  இணையலாம்.
+                </div>
+              </div>
+
+              <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn-rsvp"
+                  onClick={() => setAttendeeRegisterModalOpen(false)}
+                  style={{ flex: 1 }}
+                >
+                  ரத்து (Cancel)
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingAttendee}
+                  className="btn-submit-event"
+                  style={{ flex: 2 }}
+                >
+                  {isSubmittingAttendee ? 'சரிபார்க்கப்படுகிறது...' : 'பதிவு செய்து இணைக ➔'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADMIN ATTENDEES LIST MODAL ── */}
+      {attendeeListModalOpen && selectedEventForList && (
+        <div
+          className="event-modal-overlay"
+          onClick={() => {
+            setAttendeeListModalOpen(false);
+            setAttendeeSearchQuery('');
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="event-modal-card attendees-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="event-modal-close"
+              onClick={() => {
+                setAttendeeListModalOpen(false);
+                setAttendeeSearchQuery('');
+              }}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#a855f7', margin: 0 }}>
+                👥 பதிவு செய்த பங்கேற்பாளர்கள்
+              </h3>
+              <span className="attendee-count-badge">
+                {attendeesList.length} நபர்கள்
+              </span>
+            </div>
+
+            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1rem' }}>
+              📌 நிகழ்வு: <strong style={{ color: '#e2e8f0' }}>{selectedEventForList.title}</strong>
+            </p>
+
+            {/* Toolbar: Search & Export */}
+            <div className="attendees-toolbar">
+              <input
+                type="text"
+                className="attendee-search-input"
+                placeholder="🔍 பெயர், ஊர் அல்லது எண் தேட..."
+                value={attendeeSearchQuery}
+                onChange={(e) => setAttendeeSearchQuery(e.target.value)}
+              />
+
+              <button
+                type="button"
+                className="btn-export-csv"
+                onClick={handleExportAttendeesCsv}
+                title="Excel / CSV வடிவில் தரவிறக்கம் செய்"
+              >
+                <span>📥</span>
+                <span>Excel (CSV) டவுன்லோட்</span>
+              </button>
+            </div>
+
+            {/* Table */}
+            {attendeesLoading ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                பட்டியல் ஏற்றப்படுகிறது...
+              </div>
+            ) : attendeesList.length === 0 ? (
+              <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
+                <div style={{ fontWeight: 600, color: '#cbd5e1' }}>இன்னும் யாரும் விவரம் பதிவு செய்யவில்லை</div>
+                <div style={{ fontSize: '0.78rem', marginTop: '0.25rem' }}>பயனர்கள் "பெயர் &amp; ஊர் பதிவு செய்க" பட்டன் மூலம் பதிவு செய்தவுடன் இங்கு தோன்றும்.</div>
+              </div>
+            ) : (
+              <div className="attendees-table-wrap">
+                <table className="attendees-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '40px' }}>#</th>
+                      <th>பெயர் (Name)</th>
+                      <th>ஊர் (Place)</th>
+                      <th>தொடர்பு (WhatsApp / Phone)</th>
+                      <th>பதிவு நேரம்</th>
+                      <th style={{ textAlign: 'center' }}>செயல் (Action)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendeesList
+                      .filter((att) => {
+                        if (!attendeeSearchQuery.trim()) return true;
+                        const q = attendeeSearchQuery.toLowerCase();
+                        return (
+                          (att.name || '').toLowerCase().includes(q) ||
+                          (att.place || '').toLowerCase().includes(q) ||
+                          (att.phone || '').includes(q)
+                        );
+                      })
+                      .map((att, idx) => {
+                        const cleanPhone = (att.phone || '').replace(/[^0-9]/g, '');
+                        return (
+                          <tr key={att.id || idx}>
+                            <td style={{ color: '#8b949e', fontWeight: 600 }}>{idx + 1}</td>
+                            <td>
+                              <strong style={{ color: '#f0f6fc' }}>{att.name}</strong>
+                            </td>
+                            <td>{att.place || '—'}</td>
+                            <td>
+                              {att.phone ? (
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                  <span>{att.phone}</span>
+                                  {cleanPhone.length >= 10 && (
+                                    <a
+                                      href={`https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone.slice(-10)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="attendee-wa-link"
+                                      title="WhatsApp-ல் பேச"
+                                    >
+                                      💬
+                                    </a>
+                                  )}
+                                  <a
+                                    href={`tel:${att.phone}`}
+                                    style={{ color: '#38bdf8', textDecoration: 'none' }}
+                                    title="அழைக்க"
+                                  >
+                                    📞
+                                  </a>
+                                </div>
+                              ) : (
+                                '—'
+                              )}
+                            </td>
+                            <td style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                              {att.registeredAt
+                                ? new Date(att.registeredAt).toLocaleDateString('ta-IN', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })
+                                : '—'}
+                            </td>
+                            <td style={{ textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteAttendee(att.id)}
+                                style={{
+                                  background: 'rgba(239, 68, 68, 0.12)',
+                                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                                  borderRadius: '6px',
+                                  color: '#f87171',
+                                  padding: '0.22rem 0.55rem',
+                                  fontSize: '0.74rem',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                                title="தவறான / ஸ்பேம் பதிவை நீக்கு (Delete Spam)"
+                              >
+                                🗑️ நீக்கு
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn-rsvp"
+                onClick={() => {
+                  setAttendeeListModalOpen(false);
+                  setAttendeeSearchQuery('');
+                }}
+              >
+                மூடுக (Close)
+              </button>
+            </div>
           </div>
         </div>
       )}
