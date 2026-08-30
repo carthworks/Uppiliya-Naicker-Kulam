@@ -133,7 +133,11 @@ function getEventCountdown(evt, nowMs = Date.now()) {
     let hours = 19; // default 7 PM
     let minutes = 0;
 
-    if (evt.time) {
+    if (evt.startTime) {
+      const parts = evt.startTime.split(':');
+      hours = parseInt(parts[0], 10);
+      minutes = parseInt(parts[1], 10) || 0;
+    } else if (evt.time) {
       if (evt.time.includes('T')) {
         const d = new Date(evt.time);
         if (!isNaN(d.getTime())) return computeTimeDiff(d.getTime(), nowMs);
@@ -245,6 +249,7 @@ export default function OnlineEventsSection() {
   const [attendeesList, setAttendeesList] = useState([]);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [attendeeSearchQuery, setAttendeeSearchQuery] = useState('');
+  const [showIntimationHub, setShowIntimationHub] = useState(false);
 
   // Form State for creating / editing a meeting
   const [formData, setFormData] = useState({
@@ -316,10 +321,10 @@ export default function OnlineEventsSection() {
           if (cached) localEvents = JSON.parse(cached) || [];
         } catch {}
 
-        // Combine unique events by ID
+        // Combine unique events by ID (server events take priority over local cache)
         const eventMap = new Map();
-        serverEvents.forEach((evt) => eventMap.set(evt.id, evt));
         localEvents.forEach((evt) => eventMap.set(evt.id, evt));
+        serverEvents.forEach((evt) => eventMap.set(evt.id, evt));
 
         const merged = Array.from(eventMap.values());
         if (merged.length > 0) {
@@ -737,6 +742,50 @@ export default function OnlineEventsSection() {
     link.click();
     document.body.removeChild(link);
     showToast('📥 CSV பட்டியல் பதிவிறக்கம் செய்யப்பட்டது!');
+  };
+
+  // Build Personalized Pre-Meeting Reminder Message
+  const buildAttendeeReminderMessage = (evt, attendeeName = '') => {
+    if (!evt) return '';
+    const greeting = attendeeName ? `வணக்கம் ${attendeeName} அவர்களே,\n\n` : `வணக்கம் உறவுகளே,\n\n`;
+    const cleanJoinLink = evt.joinLink?.startsWith('http') ? evt.joinLink : `https://${evt.joinLink || ''}`;
+    return `${greeting}🔔 உப்பிலியர் களம் நேரலை ஆன்லைன் கூட்டம் இன்னும் சில நிமிடங்களில் தொடங்க உள்ளது!\n\n📌 *தலைப்பு:* ${evt.title || ''}\n📅 *தேதி:* ${evt.dateFormatted || evt.date || ''}\n⏰ *நேரம்:* ${evt.time || ''}\n🟢 *கூகுள் மீட் நேரடி இணைப்பு:* ${cleanJoinLink}\n\nஅனைவரும் தவறாமல் கலந்துகொண்டு பயன்பெறுமாறு அன்புடன் கேட்டுக்கொள்கிறோம்.\n\nநன்றி & வாழ்த்துகள்,\n*${evt.host || 'T. கார்த்திகேயன்'}* ${evt.hostContact ? `(${evt.hostContact})` : ''}\nஉப்பிலியர் களம் · நம்ம சிந்தனைக் களம்`;
+  };
+
+  // Copy Complete Reminder Template to Clipboard
+  const handleCopyReminderTemplate = () => {
+    if (!selectedEventForList) return;
+    const msg = buildAttendeeReminderMessage(selectedEventForList, '');
+    try {
+      navigator.clipboard.writeText(msg);
+      showToast('📋 நினைவூட்டல் செய்தி நகலெடுக்கப்பட்டது (Copied)!');
+    } catch {
+      showToast('⚠️ செய்தி நகலெடுப்பதில் சிக்கல்');
+    }
+  };
+
+  // Copy All Attendee Phone Numbers (for WhatsApp Broadcast / SMS)
+  const handleCopyAllPhoneNumbers = () => {
+    if (!attendeesList.length) {
+      showToast('⚠️ எண்கள் இல்லை');
+      return;
+    }
+    const numbers = attendeesList
+      .map((a) => (a.phone || '').replace(/\D/g, ''))
+      .filter((p) => p.length >= 10)
+      .map((p) => (p.length === 10 ? `+91${p}` : `+${p}`));
+
+    const uniqueNumbers = Array.from(new Set(numbers));
+    if (!uniqueNumbers.length) {
+      showToast('⚠️ செல்லுபடியாகும் எண்கள் இல்லை');
+      return;
+    }
+    try {
+      navigator.clipboard.writeText(uniqueNumbers.join(', '));
+      showToast(`📱 ${uniqueNumbers.length} எண்கள் நகலெடுக்கப்பட்டது!`);
+    } catch {
+      showToast('⚠️ எண்களை நகலெடுப்பதில் சிக்கல்');
+    }
   };
 
   // Direct 1-Click Meeting Join (No password needed)
@@ -2082,6 +2131,76 @@ export default function OnlineEventsSection() {
           background: linear-gradient(135deg, #2ae771, #16a085);
           color: #ffffff;
         }
+
+        /* Pre-Meeting Intimation Hub */
+        .btn-intimation-hub {
+          background: linear-gradient(135deg, rgba(234, 179, 8, 0.16), rgba(202, 138, 4, 0.28));
+          color: #fde047;
+          border: 1px solid rgba(234, 179, 8, 0.45);
+          padding: 0.45rem 0.85rem;
+          border-radius: 8px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          transition: all 0.2s ease;
+          font-family: inherit;
+        }
+
+        .btn-intimation-hub:hover, .btn-intimation-hub.active {
+          background: linear-gradient(135deg, rgba(234, 179, 8, 0.35), rgba(202, 138, 4, 0.55));
+          color: #ffffff;
+          border-color: #fde047;
+          transform: translateY(-1px);
+        }
+
+        .intimation-panel {
+          background: linear-gradient(180deg, #161e2e, #0f172a);
+          border: 1px solid rgba(234, 179, 8, 0.35);
+          border-radius: 12px;
+          padding: 1.15rem;
+          margin-bottom: 1.25rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .intimation-preview-box {
+          background: #090d16;
+          border: 1px solid #1f2937;
+          border-radius: 8px;
+          padding: 0.85rem;
+          font-size: 0.82rem;
+          color: #e2e8f0;
+          line-height: 1.6;
+          white-space: pre-wrap;
+          font-family: inherit;
+          max-height: 180px;
+          overflow-y: auto;
+          margin: 0.75rem 0;
+        }
+
+        .attendee-remind-btn {
+          background: rgba(37, 211, 102, 0.12);
+          border: 1px solid rgba(37, 211, 102, 0.35);
+          border-radius: 6px;
+          color: #25D366;
+          padding: 0.22rem 0.55rem;
+          font-size: 0.74rem;
+          font-weight: 700;
+          text-decoration: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          transition: all 0.15s ease;
+        }
+
+        .attendee-remind-btn:hover {
+          background: #25D366;
+          color: #ffffff;
+          border-color: #25D366;
+          transform: scale(1.04);
+        }
       `}</style>
 
       <div className="events-ambient-glow" />
@@ -2288,7 +2407,7 @@ export default function OnlineEventsSection() {
                   <div key={evt.id} className="feed-event-item">
                     {/* Date Badge */}
                     <div className="feed-date-badge">
-                      <div className="feed-date-main">{formatTamilDate(evt.time || evt.date)}</div>
+                      <div className="feed-date-main">{evt.dateFormatted || formatTamilDate(evt.date)}</div>
                       <div className="feed-date-time">{formatTamilTime(evt.time)}</div>
                     </div>
 
@@ -2344,6 +2463,31 @@ export default function OnlineEventsSection() {
                         >
                           <span>👥</span>
                           <span>பங்கேற்பாளர்கள் ({evt.attendees || 0})</span>
+                        </button>
+                        <button
+                          className="btn-admin-intimate"
+                          onClick={() => {
+                            setShowIntimationHub(true);
+                            handleOpenAttendeeList(evt);
+                          }}
+                          style={{
+                            background: 'rgba(234, 179, 8, 0.12)',
+                            border: '1px solid rgba(234, 179, 8, 0.35)',
+                            borderRadius: '6px',
+                            color: '#fde047',
+                            padding: '0.35rem 0.65rem',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontFamily: 'inherit',
+                          }}
+                          title="நிர்வாகி: கூட்டம் தொடங்கும் முன் அனைவருக்கும் நினைவூட்டல் செய்தி அனுப்பு"
+                        >
+                          <span>📢</span>
+                          <span>நினைவூட்டல் (Intimate)</span>
                         </button>
                         <button
                           className="btn-admin-edit"
@@ -2944,7 +3088,7 @@ export default function OnlineEventsSection() {
               📌 நிகழ்வு: <strong style={{ color: '#e2e8f0' }}>{selectedEventForList.title}</strong>
             </p>
 
-            {/* Toolbar: Search & Export */}
+            {/* Toolbar: Search, Intimation & Export */}
             <div className="attendees-toolbar">
               <input
                 type="text"
@@ -2956,6 +3100,16 @@ export default function OnlineEventsSection() {
 
               <button
                 type="button"
+                className={`btn-intimation-hub ${showIntimationHub ? 'active' : ''}`}
+                onClick={() => setShowIntimationHub(!showIntimationHub)}
+                title="கூட்டம் தொடங்குவதற்கு முன் அனைவருக்கும் நினைவூட்டல் செய்தி அனுப்புக"
+              >
+                <span>📢</span>
+                <span>{showIntimationHub ? 'நினைவூட்டலை மூடு' : 'நினைவூட்டல் செய்தி (Send Intimation)'}</span>
+              </button>
+
+              <button
+                type="button"
                 className="btn-export-csv"
                 onClick={handleExportAttendeesCsv}
                 title="Excel / CSV வடிவில் தரவிறக்கம் செய்"
@@ -2964,6 +3118,65 @@ export default function OnlineEventsSection() {
                 <span>Excel (CSV) டவுன்லோட்</span>
               </button>
             </div>
+
+            {/* Pre-Meeting Intimation Hub Panel */}
+            {showIntimationHub && selectedEventForList && (
+              <div className="intimation-panel">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fde047', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>📢</span>
+                    <span>கூட்டம் தொடங்குவதற்கு முன் நினைவூட்டல் (Pre-Meeting Intimation Hub)</span>
+                  </div>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                    பதிவு செய்தவர்கள்: <strong style={{ color: '#f0f6fc' }}>{attendeesList.length} நபர்கள்</strong>
+                  </span>
+                </div>
+
+                <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: '0 0 0.5rem', lineHeight: 1.4 }}>
+                  கீழே உள்ள செய்தியை நகலெடுத்து வாட்ஸ்அப் குழுவிலோ அல்லது கீழே உள்ள அட்டவணையில் ஒவ்வொருவருக்கும் <strong>"🔔 நினைவூட்டு"</strong> பட்டன் மூலமாகவோ நேரடியாக அனுப்பலாம்:
+                </p>
+
+                <div className="intimation-preview-box">
+                  {buildAttendeeReminderMessage(selectedEventForList, '')}
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <button
+                    type="button"
+                    className="btn-export-csv"
+                    style={{ background: 'linear-gradient(135deg, #eab308, #ca8a04)', color: '#000', fontWeight: 800, border: 'none' }}
+                    onClick={handleCopyReminderTemplate}
+                    title="முழு நினைவூட்டல் செய்தியையும் நகலெடு"
+                  >
+                    <span>📋</span>
+                    <span>செய்தியை நகலெடு (Copy Message)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-export-csv"
+                    style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.4)' }}
+                    onClick={handleCopyAllPhoneNumbers}
+                    title="அனைத்து பங்கேற்பாளர்களின் தொலைபேசி எண்களையும் நகலெடு"
+                  >
+                    <span>📱</span>
+                    <span>அனைத்து எண்களையும் நகலெடு ({attendeesList.length} எண்கள்)</span>
+                  </button>
+
+                  <a
+                    href="https://chat.whatsapp.com/CY7JIN54mCx6w4UmvSo5xD"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-export-csv"
+                    style={{ background: 'rgba(37, 211, 102, 0.15)', color: '#25D366', border: '1px solid rgba(37, 211, 102, 0.4)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    title="நம்ம களம் WhatsApp குழுவிற்குச் சென்று செய்தி பகிர்"
+                  >
+                    <span>💬</span>
+                    <span>"நம்ம களம்" குழுவில் பகிர ➔</span>
+                  </a>
+                </div>
+              </div>
+            )}
 
             {/* Table */}
             {attendeesLoading ? (
@@ -2984,7 +3197,7 @@ export default function OnlineEventsSection() {
                       <th style={{ width: '40px' }}>#</th>
                       <th>பெயர் (Name)</th>
                       <th>ஊர் (Place)</th>
-                      <th>தொடர்பு (WhatsApp / Phone)</th>
+                      <th>தொடர்பு &amp; நினைவூட்டல்</th>
                       <th>பதிவு நேரம்</th>
                       <th style={{ textAlign: 'center' }}>செயல் (Action)</th>
                     </tr>
@@ -3011,18 +3224,32 @@ export default function OnlineEventsSection() {
                             <td>{att.place || '—'}</td>
                             <td>
                               {att.phone ? (
-                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center', flexWrap: 'wrap' }}>
                                   <span>{att.phone}</span>
                                   {cleanPhone.length >= 10 && (
-                                    <a
-                                      href={`https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone.slice(-10)}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="attendee-wa-link"
-                                      title="WhatsApp-ல் பேச"
-                                    >
-                                      💬
-                                    </a>
+                                    <>
+                                      <a
+                                        href={`https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone.slice(-10)}?text=${encodeURIComponent(
+                                          buildAttendeeReminderMessage(selectedEventForList, att.name)
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="attendee-remind-btn"
+                                        title={`${att.name}-க்கு நேரலை நினைவூட்டல் செய்தி அனுப்ப (Send Meeting Reminder)`}
+                                      >
+                                        <span>🔔</span>
+                                        <span>நினைவூட்டு</span>
+                                      </a>
+                                      <a
+                                        href={`https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone.slice(-10)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="attendee-wa-link"
+                                        title="WhatsApp-ல் பேச"
+                                      >
+                                        💬
+                                      </a>
+                                    </>
                                   )}
                                   <a
                                     href={`tel:${att.phone}`}
